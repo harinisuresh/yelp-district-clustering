@@ -1,3 +1,4 @@
+"""Map class for hanlding coordinate conversion and adding labels to map image."""
 from MapUtils import Position, Coordinate
 from PIL import Image
 from PIL import ImageFont, ImageDraw, ImageOps
@@ -28,23 +29,23 @@ class Map:
         y_proportion =  abs(coordinate.latitude - self.top_left_coord.latitude)/self.real_height()
         x = x_proportion * self.image_width()
         y = y_proportion * self.image_height()
-        print  "(x,y)", (x,y)
-        print  "height", self.real_height()
-        print  "img height", self.image_height()
-        print  "y_proportion", y_proportion
-        print "coordinate.latitude", coordinate.latitude
-        print "(coordinate.latitude - self.top_left_coord.latitude)", (coordinate.latitude - self.top_left_coord.latitude)
-        if x <= self.image_width() and y <= self.image_height():
-            return Position(x,y)
-        return None
+        if y > self.image_height():
+            print "Warning, x too large, point outside image", coordinate
+        if x > self.image_width():
+            print "Warning, y too large, point outside image", coordinate
+        return Position(x,y)
 
-    def add_label_to_image(self, label_text, coordinate, rotated=False, weight = 1.0):
-        img_pos = self.world_coordinate_to_image_position(coordinate)
+        """Accepts either coordinate or position."""
+    def add_label_to_image(self, label_text, position=None, coordinate=None, rotated=False, weight = 1.0):
+        if coordinate == None and position == None:
+            raise Exception("Coordinate and position can't both be None")
+        if position == None:
+            position = self.world_coordinate_to_image_position(coordinate)
         draw_txt = ImageDraw.Draw(self.image)
         font_size = int(weight*20.0)
-        img_pos = Map.center_label_pos(img_pos, font_size, label_text, rotated)
+        position = Map.center_label_pos(position, font_size, label_text, rotated)
         font = ImageFont.truetype("fonts/ProximaNova.ttf", font_size)
-        draw_txt.text((img_pos.x, img_pos.y), label_text, font=font, fill=(0, 0, 0, 255))
+        draw_txt.text((position.x, position.y), label_text, font=font, fill=(0, 0, 0, 255))
 
     @staticmethod
     def center_label_pos(img_pos, font_size, label_text, rotated=False):
@@ -61,10 +62,23 @@ class Map:
     def pheonix():
         """Returns the map object of phoenix"""
         imagePath = "images/phoenix.png"
-        top_latitude = 33.4688937
+        top_latitude = 33.465830
         bottom_latitude = 33.4209533
-        left_longitude = -112.1282946
+        left_longitude = -112.1172946
         right_longitude = -112.0071188
+        return Map(Coordinate(top_latitude,left_longitude), \
+         Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\
+         Coordinate(bottom_latitude,right_longitude), imagePath)
+
+    @staticmethod
+    def vegas():
+        """Returns the map object of vegas"""
+        imagePath = "images/vegas.png"
+        top_latitude = 36.292541
+        bottom_latitude = 36.032546
+        left_longitude = -115.342712
+        right_longitude = -115.000076
+
         return Map(Coordinate(top_latitude,left_longitude), \
          Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\
          Coordinate(bottom_latitude,right_longitude), imagePath)
