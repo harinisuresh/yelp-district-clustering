@@ -1,7 +1,5 @@
-function mapping = create_word_map(sentences)
+function mapping = create_word_map(documents)
     map = containers.Map();
-
-    
     
     for i = 1:length(sentences)
         word_list = strsplit(sentences{i}, ' ');
