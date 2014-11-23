@@ -7,7 +7,7 @@ from MapUtils import Coordinate
 
 my_map = Map.pheonix()
 im = my_map.image
-my_map.add_label_to_image("top right", Coordinate((33.4279533+33.4618937)/2.0, (-112.1082946 + -112.0371188)/2.0), False, 1.0)
+my_map.add_label_to_image("middle", Coordinate((33.4279533+33.4618937)/2.0, (-112.1082946 + -112.0371188)/2.0), False, 1.0)
 
 im.show()
 

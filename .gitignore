@@ -41,3 +41,4 @@ slprj/
 *.out
 *.synctex.gz
 *.fdb_latexmk
+yelp_dataset/

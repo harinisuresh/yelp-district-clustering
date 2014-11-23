@@ -3,12 +3,13 @@ from PIL import Image
 from PIL import ImageFont, ImageDraw, ImageOps
 
 class Map:
-    def __init__(self, top_left_coord, top_right_coord, bottom_left_coord, bottom_right_coord, image):
+    def __init__(self, top_left_coord, top_right_coord, bottom_left_coord, bottom_right_coord, image_path):
         self.top_left_coord = top_left_coord
         self.top_right_coord = top_right_coord
         self.bottom_left_coord = bottom_left_coord
         self.bottom_right_coord = bottom_right_coord
-        self.image = image
+        self.image =  Image.open(image_path)
+        self.image_path = image_path
 
     def real_width(self):
         return abs(self.top_left_coord.longitude - self.top_right_coord.longitude)
@@ -29,11 +30,13 @@ class Map:
         y = y_proportion * self.image_height()
         print  "(x,y)", (x,y)
         print  "height", self.real_height()
+        print  "img height", self.image_height()
         print  "y_proportion", y_proportion
         print "coordinate.latitude", coordinate.latitude
         print "(coordinate.latitude - self.top_left_coord.latitude)", (coordinate.latitude - self.top_left_coord.latitude)
-
-        return Position(x,y)
+        if x <= self.image_width() and y <= self.image_height():
+            return Position(x,y)
+        return None
 
     def add_label_to_image(self, label_text, coordinate, rotated=False, weight = 1.0):
         img_pos = self.world_coordinate_to_image_position(coordinate)
@@ -57,11 +60,11 @@ class Map:
     @staticmethod
     def pheonix():
         """Returns the map object of phoenix"""
-        image = Image.open("images/phoenix.png")
-        top_latitude = 33.4618937
-        botton_latitude = 33.4279533
-        left_longitude = -112.1082946
-        right_longitude = -112.0371188
+        imagePath = "images/phoenix.png"
+        top_latitude = 33.4688937
+        bottom_latitude = 33.4209533
+        left_longitude = -112.1282946
+        right_longitude = -112.0071188
         return Map(Coordinate(top_latitude,left_longitude), \
-         Coordinate(top_latitude,right_longitude), Coordinate(botton_latitude,left_longitude),\
-         Coordinate(botton_latitude,right_longitude), image)
+         Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\
+         Coordinate(bottom_latitude,right_longitude), imagePath)
