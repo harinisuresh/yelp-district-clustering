@@ -6,13 +6,16 @@ from scipy.cluster.vq import vq, kmeans, whiten
 from MapUtils import Coordinate, Position
 from Map import Map
 from DataImporter import get_pheonix_restaurants, get_vegas_restaurants
+import math
 
 def createClusterAndMap():
-    N_CLUSTERS = 25
     my_map = Map.vegas()
     restaurants = get_vegas_restaurants()
     restaurant_coordinates = []
     restaurant_positions = []
+    num_restaurants = restaurants.size
+    N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
+    print "K-mean clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
 
     for restaurant in restaurants:
         coord = Coordinate(restaurant["latitude"],restaurant["longitude"])
