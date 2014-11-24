@@ -25,14 +25,14 @@ class Map:
         return self.image.size[1]
 
     def world_coordinate_to_image_position(self, coordinate):
-        x_proportion =  abs(coordinate.longitude - self.top_left_coord.longitude)/self.real_width()
-        y_proportion =  abs(coordinate.latitude - self.top_left_coord.latitude)/self.real_height()
+        x_proportion = (coordinate.longitude - self.top_left_coord.longitude)/self.real_width()
+        y_proportion = (abs(self.top_left_coord.latitude) - abs(coordinate.latitude))/self.real_height()
         x = x_proportion * self.image_width()
         y = y_proportion * self.image_height()
         if y > self.image_height():
-            print "Warning, x too large, point outside image", coordinate
-        if x > self.image_width():
             print "Warning, y too large, point outside image", coordinate
+        if x > self.image_width():
+            print "Warning, x too large, point outside image", coordinate
         return Position(x,y)
 
         """Accepts either coordinate or position."""
@@ -52,10 +52,10 @@ class Map:
         pos = Position(img_pos.x, img_pos.y)
         if rotated:
             pos.y -= (font_size * len(label_text))/4.0
-            pos.x -= (font_size * len(label_text))/8.0
+            pos.x -= (font_size)/4.0
         else:
             pos.x -= (font_size * len(label_text))/4.0
-            pos.y -= (font_size * len(label_text))/8.0
+            pos.y -= (font_size)/4.0
         return pos
 
     @staticmethod

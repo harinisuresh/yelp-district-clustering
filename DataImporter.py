@@ -11,6 +11,7 @@ def get_vegas_restaurants():
 
 def get_restaurants(city_string):
     f = open('yelp_dataset/yelp_academic_dataset_business.json', "r")
+    print "Reading JSON..."
     lines = [line for line in f]
     f.close()
 
