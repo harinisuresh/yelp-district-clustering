@@ -34,7 +34,7 @@ function output = lda_gibbs_sampler(number_of_topics, number_of_iterations, word
                 beta_w = beta(i);
                 n_topic = n_k(j);
                 p = zeros(number_of_topics);
-                p(j) = (n_d_topic + alpha_k)*(n_topic_w + beta_w)/(n_topic + beta*w); %need to add somethign to w so it only considers the first column
+                p(j) = (n_d_topic + alpha_k)*(n_topic_w + beta_w)/(n_topic + cross(beta,w)); %need to add somethign to w so it only considers the first column
            
             end
             p = p/sum(p);
