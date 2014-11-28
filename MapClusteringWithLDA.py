@@ -8,22 +8,33 @@ from Map import Map
 from DataImporter import get_pheonix_restaurants, get_vegas_restaurants
 import math
 
-def createClusterAndMap():
-    my_map = Map.vegas()
-    restaurants = get_vegas_restaurants()
+def createTopicClusterAndMap(restaurants, restaurants_to_topics_array, my_map):
     restaurant_coordinates = []
     restaurant_positions = []
+    all_topic_weights = []
     num_restaurants = restaurants.size
     N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
     print "K-mean clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
 
+    i = 0
     for restaurant in restaurants:
         coord = Coordinate(restaurant["latitude"],restaurant["longitude"])
         position = my_map.world_coordinate_to_image_position(coord)
         restaurant_coordinates.append(coord)
         restaurant_positions.append(position)
+        all_topics_for_restaurant = restaurants_to_topics_array[i,:]
+        all_topic_weights.append(all_topics_for_restaurant)
+        i += 1
 
-    data = np.array([[pos.y,pos.x] for pos in restaurant_positions])
+    data_array = []
+    for i in range(num_restaurants):
+        topic_weights = all_topic_weights[i]
+        pos = restaurant_positions[i]
+        d = [pos.x, pos.y]
+        d.extend(topic_weights)
+        data_array.append(d)
+
+    data = np.array(data_array)
     centers, center_dist = kmeans(data, N_CLUSTERS, iter=200)
     classifications, classification_dist = vq(data, centers)
 
@@ -56,5 +67,3 @@ def createClusterAndMap():
         restaurant = restaurants[0]
         my_map.add_label_to_image(restaurant["name"], center_position, None, False, 1.0)
     my_map.image.show()
-
-createClusterAndMap()
