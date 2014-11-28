@@ -55,13 +55,14 @@ def get_reviews_from_restuaraunts(city_string):
         if business_id in relevant_restaurant_ids:
             i = i + 1
             val = restauraunt_id_to_review_text.get(business_id, "")
-            review_text = review["text"]
+            review_text = clean_review(review["text"])
             newVal = val + review["text"]
             restauraunt_id_to_review_text[business_id] = newVal
 
     return restauraunt_id_to_review_text
 
 def clean_review(text):
-    
+    cleaned_text = re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', text)
+    return cleaned_text
     
 print get_reviews_from_restuaraunts("Phoenix")
