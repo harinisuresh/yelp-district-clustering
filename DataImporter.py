@@ -53,3 +53,8 @@ def get_reviews_from_restuaraunts(city_string):
             restauraunt_id_to_review_text[business_id] = newVal
     print restauraunt_id_to_review_text
     return restauraunt_id_to_review_text
+
+def clean_review(text):
+    
+    
+print get_reviews_from_restuaraunts("Phoenix")
