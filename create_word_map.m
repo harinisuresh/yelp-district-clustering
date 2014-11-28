@@ -1,3 +1,4 @@
+
 function mapping = create_word_map(documents)
     map = containers.Map();
     
