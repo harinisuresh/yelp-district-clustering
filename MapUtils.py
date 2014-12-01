@@ -40,6 +40,9 @@ class Rectangle:
         self.right = max(x1, x2)
         self.bottom = max(y1, y2)
 
+    def center(self):
+        return Position((self.left + self.right)*0.5 , (self.top + self.bottom)*0.5)
+
 def create_n_unique_colors(n):
     colors = []
     h = 0.0
