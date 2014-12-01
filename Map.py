@@ -29,10 +29,6 @@ class Map:
         y_proportion = (abs(self.top_left_coord.latitude) - abs(coordinate.latitude))/self.real_height()
         x = x_proportion * self.image_width()
         y = y_proportion * self.image_height()
-        if y > self.image_height():
-            print "Warning, y too large, point outside image", coordinate
-        if x > self.image_width():
-            print "Warning, x too large, point outside image", coordinate
         return Position(x,y)
 
         """Accepts either coordinate or position."""
@@ -42,7 +38,7 @@ class Map:
         if position == None:
             position = self.world_coordinate_to_image_position(coordinate)
         draw_txt = ImageDraw.Draw(self.image)
-        font_size = int(weight*20.0)
+        font_size = int(weight*16.0)
         position = Map.center_label_pos(position, font_size, label_text, rotated)
         font = ImageFont.truetype("fonts/ProximaNova.ttf", font_size)
         draw_txt.text((position.x, position.y), label_text, font=font, fill=(0, 0, 0, 255))

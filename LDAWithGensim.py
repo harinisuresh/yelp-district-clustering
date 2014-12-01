@@ -4,10 +4,9 @@ import logging
 import gensim
 from gensim.corpora import BleiCorpus
 from gensim import corpora
-from DataImporter import get_reviews_from_restuaraunts, get_vegas_restaurants
+from DataImporter import get_reviews_from_restuaraunts
 import re
 from sklearn.feature_extraction import text as sktext
-
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
@@ -39,16 +38,15 @@ class Dictionary(object):
         return dictionary
 
 
-class Train:
+class Train():
     def __init__(self):
         pass
 
     @staticmethod
     def run(lda_model_path, corpus_path, num_topics, id2word):
         corpus = corpora.BleiCorpus(corpus_path)
-        lda = gensim.models.LdaModel(corpus, num_topics=num_topics, id2word=id2word)
+        lda = gensim.models.LdaModel(corpus, num_topics=num_topics, id2word=id2word, passes=10, eval_every=10, iterations=500)
         lda.save(lda_model_path)
-
         return lda
 
 def get_words_from_text(text, custom_stop_words = []):
@@ -61,6 +59,7 @@ def get_words_from_text(text, custom_stop_words = []):
     
     return words
 
+
 def main():
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
@@ -71,21 +70,12 @@ def main():
     city = "Las Vegas"
     reviews = get_reviews_from_restuaraunts(city)
 
-    corpus_collection = { business_id : {"review_text" : review_text, "words": get_words_from_text(review_text)} for business_id, review_text in reviews.iteritems()}
+    corpus_collection = {business_id : {"review_text" : review_text, "words": get_words_from_text(review_text)} for business_id, review_text in reviews.iteritems()}
     dictionary = Dictionary(corpus_collection, dictionary_path).build()
     Corpus(corpus_collection, dictionary, corpus_path).serialize()
     lda = Train.run(lda_model_path, corpus_path, lda_num_topics, dictionary)
     print "Converged on Topics:"
     lda.print_topics(50)
-    restaurants = get_vegas_restaurants()
-    for restaurant in restaurants:
-        business_id  = restaurant["business_id"]
-        print "Prediction for: ", restaurant["name"], "is:"
-        review = reviews[business_id]
-        text = review
-        words = get_words_from_text(text)
-        prediction = lda[dictionary.doc2bow(words)]
-        print prediction
 
 if __name__ == '__main__':
     main()
