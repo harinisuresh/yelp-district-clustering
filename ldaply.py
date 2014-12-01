@@ -15,8 +15,9 @@ stoplist = text.ENGLISH_STOP_WORDS
 # Build tokenized, normalised word vectors for each document
 # We could apply stemming here.
 
-texts = [[word for word in re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', document.lower()) if word not in stoplist and word != ""]
-          for document in documents]
+
+#texts = [[word for word in re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', document.lower()) if word not in stoplist and word != ""]
+#          for document in documents]  ## now take care of this in DataImporter
  
 # remove words that appear only once
 all_tokens = sum(texts, [])

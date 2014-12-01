@@ -1,6 +1,6 @@
 """Cluster restaurants on map"""
 import matplotlib.pyplot as plt
-import pandas as pd
+#import pandas as pd
 import numpy as np
 from scipy.cluster.vq import vq, kmeans, whiten
 from MapUtils import Coordinate, Position, create_n_unique_colors
