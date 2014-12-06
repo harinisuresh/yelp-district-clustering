@@ -2,6 +2,7 @@
 import json
 from pprint import pprint
 import numpy as np
+import re
 
 def get_pheonix_restaurants():
     return get_restaurants("Phoenix")
@@ -49,13 +50,11 @@ def get_reviews_from_restuaraunts(city_string):
     reviews = [json.loads(line) for line in lines]
     print "Done Parsing Review JSON..."
     restauraunt_id_to_review_text = {}
-    i = 0
     for review in reviews:
         business_id = review["business_id"]
         if business_id in relevant_restaurant_ids:
-            i = i + 1
             val = restauraunt_id_to_review_text.get(business_id, "")
-            review_text = clean_review(review["text"])
+            review_text = review["text"]
             newVal = val + review["text"]
             restauraunt_id_to_review_text[business_id] = newVal
 
@@ -65,4 +64,3 @@ def clean_review(text):
     cleaned_text = re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', text)
     return cleaned_text
     
-print get_reviews_from_restuaraunts("Phoenix")

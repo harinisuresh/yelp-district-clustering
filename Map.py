@@ -24,11 +24,13 @@ class Map:
     def image_height(self):
         return self.image.size[1]
 
-    def world_coordinate_to_image_position(self, coordinate):
+    def world_coordinate_to_image_position(self, coordinate, from_bottom_left=False):
         x_proportion = (coordinate.longitude - self.top_left_coord.longitude)/self.real_width()
         y_proportion = (abs(self.top_left_coord.latitude) - abs(coordinate.latitude))/self.real_height()
         x = x_proportion * self.image_width()
         y = y_proportion * self.image_height()
+        if from_bottom_left:
+            y = self.image_height() - y
         return Position(x,y)
 
         """Accepts either coordinate or position."""
