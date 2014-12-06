@@ -17,7 +17,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
     N_CLUSTERS = 30
-    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 100.0
+    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 2.0
     LDA_ClUSTER_SCALE_FACTOR = 0.0
     num_topics = 50
     print "K-mean clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
