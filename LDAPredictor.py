@@ -1,5 +1,5 @@
 import logging
-
+import operator
 from gensim.models import LdaModel
 from gensim import corpora
 from sklearn.feature_extraction import text as sktext
@@ -38,8 +38,9 @@ def main():
         prediction = predictor.predict_topics(review)
         print prediction
         print "best topic:"
-        print lda.show_topic(prediction[0][0])
-        print lda.show_topic(prediction[0][0])[0]
+        sorted_prediction = prediction.sort(key = operator.itemgetter(1))
+        print lda.show_topic(sorted_prediction[0][0])
+        print lda.show_topic(sorted_prediction[0][0])[0]
 
 if __name__ == '__main__':
     main()
