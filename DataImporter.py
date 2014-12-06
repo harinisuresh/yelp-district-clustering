@@ -3,17 +3,28 @@ import json
 from pprint import pprint
 import numpy as np
 import re
+import cPickle as pickle
+import os.path
+
+VEGAS_RESTAURANTS_PATH = "pickles/get_restaurants_vegas.p"
+PHOENIX_RESTAURANTS_PATH = "pickles/get_restaurants_phoenix.p"
+
+VEGAS_REVIEWS_PATH = "pickles/get_reviews_vegas.p"
+PHOENIX_REVIEWS_PATH = "pickles/get_reviews_phoenix.p"
 
 def get_pheonix_restaurants():
-    return get_restaurants("Phoenix")
+    return get_restaurants("Phoenix", PHOENIX_RESTAURANTS_PATH)
 
 def get_vegas_restaurants():
-    return get_restaurants("Las Vegas")
+    return get_restaurants("Las Vegas", VEGAS_RESTAURANTS_PATH)
 
 def get_vegas_restaurants_id_to_restaurant():
     return get_restaurants_id_to_restaurant("Las Vegas")
 
-def get_restaurants(city_string):
+def get_restaurants(city_string, pickle_path):
+    if pickle_path and os.path.exists(pickle_path):
+        print "Loading pickle"
+        return pickle.load( open(pickle_path, "rb" ))
     f = open('yelp_dataset/yelp_academic_dataset_business.json', "r")
     print "Reading Restaurant JSON..."
     lines = [line for line in f]
@@ -23,7 +34,10 @@ def get_restaurants(city_string):
     restaurants = [business for business in businesses\
         if business["city"] == city_string\
         and "Restaurants" in business["categories"]]
-    return np.array(restaurants)
+    restaurants = np.array(restaurants)
+    if pickle_path:
+        pickle.dump( restaurants, open( pickle_path, "wb" ))
+    return restaurants
 
 def get_restaurants_id_to_restaurant(city_string):
     f = open('yelp_dataset/yelp_academic_dataset_business.json', "r")
@@ -37,8 +51,17 @@ def get_restaurants_id_to_restaurant(city_string):
         and "Restaurants" in business["categories"]}
     return restaurants
 
-def get_reviews_from_restuaraunts(city_string):
-    restaurants = get_restaurants(city_string)
+def get_vegas_reviews():
+    return get_reviews_from_restuaraunts("Las Vegas", VEGAS_REVIEWS_PATH)
+
+def get_phoenix_reviews():
+    return get_reviews_from_restuaraunts("Las Vegas", VEGAS_REVIEWS_PATH)
+
+def get_reviews_from_restuaraunts(city_string, pickle_path):
+    if pickle_path and os.path.exists(pickle_path):
+        print "Loading pickle"
+        return pickle.load( open(pickle_path, "rb" ))
+    restaurants = get_restaurants(city_string, None)
     relevant_restaurant_ids = {restaurant["business_id"] for restaurant in restaurants}
     print restaurants[0]["name"]
     f = open('yelp_dataset/yelp_academic_dataset_review.json', "r")
@@ -57,7 +80,7 @@ def get_reviews_from_restuaraunts(city_string):
             review_text = review["text"]
             newVal = val + review["text"]
             restauraunt_id_to_review_text[business_id] = newVal
-
+    pickle.dump( restauraunt_id_to_review_text, open( pickle_path, "wb" ))
     return restauraunt_id_to_review_text
 
 def clean_review(text):
