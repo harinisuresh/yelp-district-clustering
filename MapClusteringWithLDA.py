@@ -9,6 +9,7 @@ from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_rev
 from LDAPredictor import LDAPredictor
 import math
 import random
+import operator
 
 def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, lda):
     restaurant_coordinates = []
@@ -16,14 +17,10 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     all_topic_weights = []
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
-<<<<<<< HEAD
-    N_CLUSTERS = 30
+    N_CLUSTERS = 60
     LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 2.0
     LDA_ClUSTER_SCALE_FACTOR = 0.0
-=======
-    N_CLUSTERS = 60
-    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 10.0
->>>>>>> 55bf9182c519299370796b52f78ff218ad8df67f
+
     num_topics = 50
     print "K-mean clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
 
@@ -101,15 +98,28 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
         for topic_id, topic_weight in topics:
             topic_total_weights[topic_id] = topic_total_weights.get(topic_id, 0.0) + topic_weight
     topic_ids = topic_total_weights.keys()
-    print topic_total_weights
-    best_topic_id =  max(topic_ids, key=lambda t_id: topic_total_weights.get(t_id, 0.0)) # get argmax of topic
-    best_topic = lda.show_topic(best_topic_id)
-    best_weight, best_word = best_topic[0]
-    best_weight_2, best_word_2 = best_topic[1]
+    sorted_topic_total_weights = sorted(topic_total_weights.items(), key=operator.itemgetter(1)) #sort based on values
+    print sorted_topic_total_weights
+    number_of_best_topics = 2
+    best_topic_id_pairs = sorted_topic_total_weights[len(sorted_topic_total_weights)-number_of_best_topics:]
+    best_topic_ids = [best_topic_id_pair[1] for best_topic_id in best_topic_id_pairs]
+    best_topics_words = [lda.show_topic(best_topic_id) for best_topic_id in best_topic_ids] #list of words for each best topic
 
-    print best_weight
-    print best_word
-    return best_word + " " + best_word_2
+
+    #best_topic_id =  max(topic_ids, key=lambda t_id: topic_total_weights.get(t_id, 0.0)) # get argmax of topic
+    #best_topic = lda.show_topic(best_topic_id)
+
+    #list of (weight, word) tuples of the top words in each of the best topics
+    best_weights_and_words = [(best_topic_words[0], best_topic_words[1]) for best_topic_words in best_topics_words]
+
+
+    #best_weight, best_word = best_topic[0]
+    #best_weight_2, best_word_2 = best_topic[1]
+
+    print best_weights_and_words
+
+    best_words = [a[0] for a in best_weights_and_words].join(" ")
+    return best_words
 
 def run(my_map, reviews, restaurants):
     predictor = LDAPredictor()
