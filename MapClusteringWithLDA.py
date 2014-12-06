@@ -16,9 +16,14 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     all_topic_weights = []
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
+<<<<<<< HEAD
     N_CLUSTERS = 30
     LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 2.0
     LDA_ClUSTER_SCALE_FACTOR = 0.0
+=======
+    N_CLUSTERS = 60
+    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 10.0
+>>>>>>> 55bf9182c519299370796b52f78ff218ad8df67f
     num_topics = 50
     print "K-mean clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
 
@@ -61,12 +66,12 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     for i in range(N_CLUSTERS):
         cluster_x = clusters_x[i]
         cluster_y = clusters_y[i]
-        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.8)
+        plt.scatter(cluster_y, cluster_x, marker='o', color=colors[i], alpha=0.8)
 
     # Plot centers
-    plt.scatter(centers_x, centers_y, marker='x', color=[.1,.1,.1], s=60, edgecolor='black',
+    plt.scatter(centers_y, centers_x, marker='x', color=[.1,.1,.1], s=60, edgecolor='black',
             alpha=0.9)
-    plt.scatter(centers_x, centers_y, marker='o', color=[.1,.1,.1], s=60, facecolors='none',
+    plt.scatter(centers_y, centers_x, marker='o', color=[.1,.1,.1], s=60, facecolors='none',
             alpha=0.9)
     plt.show()
 
@@ -100,9 +105,11 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
     best_topic_id =  max(topic_ids, key=lambda t_id: topic_total_weights.get(t_id, 0.0)) # get argmax of topic
     best_topic = lda.show_topic(best_topic_id)
     best_weight, best_word = best_topic[0]
+    best_weight_2, best_word_2 = best_topic[1]
+
     print best_weight
     print best_word
-    return best_word
+    return best_word + " " + best_word_2
 
 def run(my_map, reviews, restaurants):
     predictor = LDAPredictor()

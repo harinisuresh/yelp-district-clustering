@@ -98,3 +98,4 @@ target/
 *.synctex.gz
 *.fdb_latexmk
 yelp_dataset/
+.DS_Store

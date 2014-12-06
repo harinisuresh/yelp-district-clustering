@@ -1,0 +1,13 @@
+# to run HeatMap
+import DataImporter
+import Map
+v_map = Map.Map.vegas()
+v_rest = DataImporter.get_vegas_restaurants()
+v_rev = DataImporter.get_reviews_from_restuaraunts("Las Vegas")
+import LDAHeatMap
+novel_id = "CoJivG0wxNIBXyOF7MNqSQ"
+topic_id_mappings = LDAHeatMap.run(v_rest, v_rev, v_map, None, novel_id)
+LDAHeatMap.run(v_map, v_rev, v_rest, None, novel_id, topic_id_mappings)
+
+# To Run MapClusterwithWithLDA
+...
