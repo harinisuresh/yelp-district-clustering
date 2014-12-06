@@ -102,7 +102,7 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
     print sorted_topic_total_weights
     number_of_best_topics = 2
     best_topic_id_pairs = sorted_topic_total_weights[len(sorted_topic_total_weights)-number_of_best_topics:]
-    best_topic_ids = [best_topic_id_pair[1] for best_topic_id in best_topic_id_pairs]
+    best_topic_ids = [best_topic_id_pair[1] for best_topic_id_pair in best_topic_id_pairs]
     best_topics_words = [lda.show_topic(best_topic_id) for best_topic_id in best_topic_ids] #list of words for each best topic
 
 
