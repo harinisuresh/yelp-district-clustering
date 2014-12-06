@@ -29,6 +29,7 @@ def create_heat_map(restaurants, restaurant_ids_to_topics, novel_restaurant_topi
     restuarants_indexed_by_id = {restaurant["business_id"] : restaurant for restaurant in restaurants}
     for xi in range(n_x_bins):
         for yi in range(n_y_bins):
+            ave_weighted_topics = np.zeros((n_topics,1))
             total_dist = 0.0
             top_left = Position(xi*bin_width, yi*bin_height)
             bottom_right = Position((xi+1)*bin_width, (yi+1)*bin_height)

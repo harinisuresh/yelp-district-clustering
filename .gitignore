@@ -99,3 +99,5 @@ target/
 *.fdb_latexmk
 yelp_dataset/
 .DS_Store
+*.DS_Store
+pickles/
