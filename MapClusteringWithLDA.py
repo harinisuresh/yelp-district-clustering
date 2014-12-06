@@ -5,7 +5,7 @@ import numpy as np
 from scipy.cluster.vq import vq, kmeans, whiten
 from MapUtils import Coordinate, Position, create_n_unique_colors
 from Map import Map
-from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_reviews_from_restuaraunts
+from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_vegas_reviews
 from LDAPredictor import LDAPredictor
 import math
 import random
@@ -18,8 +18,8 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
 
-    N_CLUSTERS = 60
-    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 2.0
+    N_CLUSTERS = 10
+    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 1.5
     LDA_ClUSTER_SCALE_FACTOR = 0.0
 
     num_topics = 50
@@ -102,16 +102,22 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
     sorted_topic_total_weights = sorted(topic_total_weights.items(), key=operator.itemgetter(1)) #sort based on values
     print sorted_topic_total_weights
     number_of_best_topics = 2
+    
     best_topic_id_pairs = sorted_topic_total_weights[len(sorted_topic_total_weights)-number_of_best_topics:]
-    best_topic_ids = [best_topic_id_pair[1] for best_topic_id in best_topic_id_pairs]
+    print best_topic_id_pairs
+
+    best_topic_ids = [best_topic_id_pair[0] for best_topic_id_pair in best_topic_id_pairs]
+    print best_topic_ids
+
     best_topics_words = [lda.show_topic(best_topic_id) for best_topic_id in best_topic_ids] #list of words for each best topic
+    print best_topics_words
 
 
     #best_topic_id =  max(topic_ids, key=lambda t_id: topic_total_weights.get(t_id, 0.0)) # get argmax of topic
     #best_topic = lda.show_topic(best_topic_id)
 
     #list of (weight, word) tuples of the top words in each of the best topics
-    best_weights_and_words = [(best_topic_words[0], best_topic_words[1]) for best_topic_words in best_topics_words]
+    best_weights_and_words = [best_topic_words[0] for best_topic_words in best_topics_words]
 
 
     #best_weight, best_word = best_topic[0]
@@ -119,7 +125,7 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
 
     print best_weights_and_words
 
-    best_words = [a[0] for a in best_weights_and_words].join(" ")
+    best_words = " ".join([a[1] for a in best_weights_and_words])
     return best_words
 
 def run(my_map, reviews, restaurants):
@@ -135,7 +141,7 @@ def run(my_map, reviews, restaurants):
 
 def main():
     my_map = Map.vegas()
-    reviews = get_reviews_from_restuaraunts("Las Vegas")
+    reviews = get_vegas_reviews()
     restaurants = get_vegas_restaurants()
     run(my_map, reviews, restaurants)
 
