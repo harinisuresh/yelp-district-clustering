@@ -42,7 +42,7 @@ class Map:
         draw_txt = ImageDraw.Draw(self.image)
         font_size = int(weight*16.0)
         position = Map.center_label_pos(position, font_size, label_text, rotated)
-        font = ImageFont.truetype("fonts/ProximaNova.ttf", font_size)
+        font = ImageFont.truetype("fonts/BEBAS___.TTF", font_size)
         draw_txt.text((position.x, position.y), label_text, font=font, fill=(0, 0, 0, 255))
 
     @staticmethod
