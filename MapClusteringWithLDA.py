@@ -10,6 +10,10 @@ from LDAPredictor import LDAPredictor
 import math
 import random
 import operator
+from Utils import make_topic_array_from_tuple_list
+from Utils import make_tuple_list_from_topic_array
+
+NUM_TOPICS = 50;
 
 def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, lda):
     restaurant_coordinates = []
@@ -18,9 +22,9 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
 
-    N_CLUSTERS = 10
-    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width() / 1.5
-    LDA_ClUSTER_SCALE_FACTOR = 0.0
+    N_CLUSTERS = 30
+    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width()*10
+    #LDA_ClUSTER_SCALE_FACTOR = 0.0
 
     num_topics = 50
     print "K-mean clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
@@ -32,7 +36,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         restaurant_coordinates.append(coord)
         restaurant_positions.append(position)
         all_topic_weights_for_restaurant = restaurant_ids_to_topics[business_id]
-        all_topic_weights_array_for_restaurant = make_topic_array_from_tuple_list(all_topic_weights_for_restaurant, num_topics, LDA_ClUSTER_SCALE_FACTOR)
+        all_topic_weights_array_for_restaurant = make_topic_array_from_tuple_list(all_topic_weights_for_restaurant, NUM_TOPICS, LDA_ClUSTER_SCALE_FACTOR)
         all_topic_weights.append(all_topic_weights_array_for_restaurant)
 
     data_array = []
@@ -43,6 +47,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         d.extend(topic_weights)
         data_array.append(d)
 
+    print data_array[1:5]    
     data = np.array(data_array)
     centers, center_dist = kmeans(data, N_CLUSTERS, iter=200)
     classifications, classification_dist = vq(data, centers)
@@ -64,12 +69,12 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     for i in range(N_CLUSTERS):
         cluster_x = clusters_x[i]
         cluster_y = clusters_y[i]
-        plt.scatter(cluster_y, cluster_x, marker='o', color=colors[i], alpha=0.8)
+        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.8)
 
     # Plot centers
-    plt.scatter(centers_y, centers_x, marker='x', color=[.1,.1,.1], s=60, edgecolor='black',
+    plt.scatter(centers_x, centers_y, marker='x', color=[.1,.1,.1], s=60, edgecolor='black',
             alpha=0.9)
-    plt.scatter(centers_y, centers_x, marker='o', color=[.1,.1,.1], s=60, facecolors='none',
+    plt.scatter(centers_x, centers_y, marker='o', color=[.1,.1,.1], s=60, facecolors='none',
             alpha=0.9)
     plt.show()
 
@@ -78,18 +83,14 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         center_position = Position(centers_x[i], centers_y[i])
         restaurants = clusters_of_restaurants[i]
         label_text = make_label_text_for_cluster(center_position, restaurants, restaurant_ids_to_topics, lda)
-        restaurant = restaurants[0]
-        my_map.add_label_to_image(label_text, center_position, None, False, 1.0)
+        #restaurant = restaurants[0]
+        my_map.add_label_to_image(label_text[0], center_position-8, None, False, 1.0)
+        my_map.add_label_to_image(label_text[1], center_position+8, None, False, 1.0)
+
     my_map.image.show()
 
-def make_topic_array_from_tuple_list(weight_tuples, num_topics, scale_factor):
-    topic_array = [0 for i in range(num_topics)]
-    total = float(sum([weight_tuple[1] for weight_tuple in weight_tuples])) # For normalization
-    for weight_tuple in weight_tuples:
-        topic_index = weight_tuple[0]
-        topic_weight = weight_tuple[1]
-        topic_array[topic_index] = (topic_weight/total) * scale_factor  # For normalization + scaling
-    return topic_array
+
+    
 
 def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_ids_to_topics, lda):
     topic_total_weights = {}
@@ -125,7 +126,7 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
 
     print best_weights_and_words
 
-    best_words = " ".join([a[1] for a in best_weights_and_words])
+    best_words = [a[1] for a in best_weights_and_words]
     return best_words
 
 def run(my_map, reviews, restaurants):
@@ -136,8 +137,23 @@ def run(my_map, reviews, restaurants):
         business_id  = restaurant["business_id"]
         review = reviews[business_id]
         prediction = predictor.predict_topics(review)
-        restaurant_ids_to_topics[business_id] = prediction
-    create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, lda)   
+        restaurant_ids_to_topics[business_id] = make_topic_array_from_tuple_list(prediction, NUM_TOPICS) #topic array of weights for each topic index
+    normalized_restaurant_ids_to_topics = normalize_predictions(restaurant_ids_to_topics, restaurants)
+    create_topic_cluster_and_map(restaurants, normalized_restaurant_ids_to_topics, my_map, lda)   
+
+def normalize_predictions(predictions, restaurants): 
+    all_weights = predictions.values()
+    print all_weights[0]
+    all_weights_sum = np.sum(all_weights, axis=0)
+    print all_weights_sum
+    for restaurant in restaurants:
+        business_id  = restaurant["business_id"]
+        weights = predictions[business_id]
+        normalized_weights = np.divide(np.array(weights,dtype=float), np.array(all_weights_sum, dtype=float))
+        predictions[business_id] = make_tuple_list_from_topic_array(normalized_weights)
+    print predictions.values()[0]
+    return predictions
+
 
 def main():
     my_map = Map.vegas()
