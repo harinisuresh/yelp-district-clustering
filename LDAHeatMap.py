@@ -6,7 +6,7 @@ from scipy.cluster.vq import vq, kmeans, whiten
 from scipy.spatial.distance import cdist
 from MapUtils import Coordinate, Position, Rectangle, create_n_unique_colors
 from Map import Map
-from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_reviews_from_restuaraunts
+from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_vegas_reviews
 from LDAPredictor import LDAPredictor
 import math
 import random
@@ -25,46 +25,40 @@ def create_heat_map(restaurants, restaurant_ids_to_topics, novel_restaurant_topi
     distances = np.zeros((n_x_bins, n_y_bins))
     bin_width = image_width/n_x_bins
     bin_height = image_height/n_y_bins
+    gaussian_variance = math.sqrt(bin_width**2+bin_height**2)
 
     restuarants_indexed_by_id = {restaurant["business_id"] : restaurant for restaurant in restaurants}
     for xi in range(n_x_bins):
         for yi in range(n_y_bins):
-            ave_weighted_topics = np.zeros((n_topics,1))
+            dist_weighted_topics = np.array([0.0 for i in range(n_topics)])
             total_dist = 0.0
-            top_left = Position(xi*bin_width, yi*bin_height)
-            bottom_right = Position((xi+1)*bin_width, (yi+1)*bin_height)
-            rect = Rectangle(top_left, bottom_right)
-            square_center = rect.center()
+            square_center = Position((xi+0.5)*bin_width, (yi+0.5)*bin_height)  
             print "center:", square_center
-            restaurant_ids_in_bucket = {restaurant["business_id"] for restaurant in restaurants if rect.contains(my_map.world_coordinate_to_image_position(Coordinate(restaurant["latitude"], restaurant["longitude"])))}
-            print "num in bucket", len(restaurant_ids_in_bucket)
+            square_pos_array = np.array([square_center.x, square_center.y])
             for business_id, restaurant_topics in restaurant_ids_to_topics.iteritems():
-                if pure_buckets and business_id not in restaurant_ids_in_bucket:
-                    continue
                 restaurant = restuarants_indexed_by_id[business_id]
-                restaurant_topics_array = make_topic_array_from_tuple_list(restaurant_topics, 50)
-                A = np.array(novel_restaurant_topics_array)
-                B = np.array(restaurant_topics_array)
-                diff = np.sqrt(np.sum((A - B)**2))
-                similarity = (np.sqrt(2.0) - diff)/np.sqrt(2.0)
-                dist = similarity
-                if pure_buckets == False:
-                    rest_pos = my_map.world_coordinate_to_image_position(Coordinate(restaurant["latitude"], restaurant["longitude"]), True)
-                    square_center = rect.center()
-                    A1 = np.array([rest_pos.x, rest_pos.y])
-                    B1 = np.array([square_center.x, square_center.y])
-                    physical_dist = np.sqrt(np.sum((A1 - B1)**2))
-                    dist = similarity/(physical_dist**2)
-                total_dist += dist
-            print total_dist
-            distances[yi, xi] = total_dist
+                restaurant_topics_array = np.array(make_topic_array_from_tuple_list(restaurant_topics, 50))
+                rest_pos = my_map.world_coordinate_to_image_position(Coordinate(restaurant["latitude"], restaurant["longitude"]), True)
+                rest_pos_array = np.array([rest_pos.x, rest_pos.y])
+                gaussian_weight = gaussian(rest_pos_array, square_pos_array, 100.0)
+                dist_weighted_topics += restaurant_topics_array*gaussian_weight
+            sum_dist_weighted_topics = dist_weighted_topics.sum(axis=0)
+
+            ave_dist_weighted_topics = dist_weighted_topics/sum_dist_weighted_topics
+            print "sum", sum_dist_weighted_topics
+            print "ave_tops", ave_dist_weighted_topics
+            print "novel_tops", novel_restaurant_topics_array
+            print "sum2", ave_dist_weighted_topics.sum(axis=0)
+            print "sum3", np.array(novel_restaurant_topics_array).sum(axis=0)
+
+            A = np.array(novel_restaurant_topics_array)
+
+            B = ave_dist_weighted_topics
+            difference = np.sqrt(2.0) - np.sqrt(np.sum((A - B)**2))
+            distances[xi, yi] = difference
+            print difference
     print distances
 
-    novel_pos = my_map.world_coordinate_to_image_position(Coordinate(novel_business["latitude"], novel_business["longitude"]), True)
-    novel_pos.x /= image_width/n_x_bins
-    novel_pos.y /= image_height/n_y_bins
-    novel_bucket_x = (int)(novel_pos.x)
-    novel_bucket_y = (int)(novel_pos.y)
 
     im = plt.imread(my_map.image_path)
     implot = plt.imshow(im, alpha=0.9, extent=[0,n_x_bins,0,n_y_bins])
@@ -76,9 +70,14 @@ def create_heat_map(restaurants, restaurant_ids_to_topics, novel_restaurant_topi
         plt.plot(pos.x, pos.y, marker='x', ms=20)
         plt.plot(pos.x, pos.y, marker='o', color=[.1,.1,.1], ms=20, markerfacecolor='none')
     plt.show()
-
     print "done"
 
+def gaussian(x, mean, variance):
+    a = math.sqrt(2*math.pi*variance)
+    b = mean
+    c = variance
+    dist_squared = np.sum((x - b)**2)
+    return a*math.exp(-1*dist_squared/(2*c*c))
 
 def run(my_map, reviews, restaurants, novel_review=None, novel_business_id=None, restaurant_ids_to_topics=None, pure_buckets=False):
     if novel_review == None and novel_business_id == None:
@@ -107,7 +106,7 @@ def run(my_map, reviews, restaurants, novel_review=None, novel_business_id=None,
 
 def main():
     my_map = Map.vegas()
-    reviews = get_reviews_from_restuaraunts("Las Vegas")
+    reviews = get_vegas_reviews()
     restaurants = get_vegas_restaurants()
     business_id = "l6QcUE8XXLrVH6Ydm4GSNw"
     run(my_map, reviews, restaurants, None, business_id)

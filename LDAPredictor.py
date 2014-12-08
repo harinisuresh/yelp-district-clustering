@@ -4,16 +4,7 @@ from gensim.models import LdaModel
 from gensim import corpora
 from sklearn.feature_extraction import text as sktext
 import re
-from DataImporter import get_reviews_from_restuaraunts, get_vegas_restaurants, clean_review
-
-def get_words_from_text(text, custom_stop_words = []):
-    stoplist = sktext.ENGLISH_STOP_WORDS
-    # Build tokenized, normalised word vectors for each document
-    # We could apply stemming here.
-    top_15_percent = set([u"it's", u'like', u'food', u'time', u'really', u'great', u'service', u'just', u'place', u'good', u'chicken'])
-
-    words = [word for word in clean_review(text.lower()) if word not in stoplist and word not in top_15_percent and word != ""]
-    return words
+from DataImporter import get_reviews_from_restuaraunts, get_vegas_restaurants, get_vegas_reviews, get_words_from_text
 
 class LDAPredictor():
     def __init__(self):
@@ -21,16 +12,20 @@ class LDAPredictor():
         self.lda = LdaModel.load("models/lda_model_50_topics.lda")
     
     def predict_topics(self, review_text):
-        words = get_words_from_text(review_text)
+        stop_set = sktext.ENGLISH_STOP_WORDS
+        words = get_words_from_text(review_text, stop_set)
         review_bow = self.dictionary.doc2bow(words)
         review_topic_predictions = self.lda[review_bow]
         return review_topic_predictions
 
 def main():
-    reviews = get_reviews_from_restuaraunts("Las Vegas")
+    reviews = get_vegas_reviews()
     restaurants = get_vegas_restaurants()
     predictor = LDAPredictor()
     lda = predictor.lda
+    for i in range(50):
+        print "topic #", i
+        print lda.show_topic(i)
     for restaurant in restaurants:
         business_id  = restaurant["business_id"]
         print "Prediction for: ", restaurant["name"], "is:"
@@ -38,9 +33,8 @@ def main():
         prediction = predictor.predict_topics(review)
         print prediction
         print "best topic:"
-        sorted_prediction = prediction.sort(key = operator.itemgetter(1))
-        print lda.show_topic(sorted_prediction[0][0])
-        print lda.show_topic(sorted_prediction[0][0])[0]
+        sorted_prediction = sorted(prediction, key = operator.itemgetter(1))
+        print lda.show_topic(sorted_prediction[-1][0])
 
 if __name__ == '__main__':
     main()

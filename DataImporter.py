@@ -58,9 +58,9 @@ def get_phoenix_reviews():
     return get_reviews_from_restuaraunts("Las Vegas", VEGAS_REVIEWS_PATH)
 
 def get_reviews_from_restuaraunts(city_string, pickle_path):
-    if pickle_path and os.path.exists(pickle_path):
-        print "Loading pickle"
-        return pickle.load( open(pickle_path, "rb" ))
+    # if pickle_path and os.path.exists(pickle_path):
+    #     print "Loading pickle"
+    #     return pickle.load( open(pickle_path, "rb" ))
     restaurants = get_restaurants(city_string, None)
     relevant_restaurant_ids = {restaurant["business_id"] for restaurant in restaurants}
     print restaurants[0]["name"]
@@ -71,6 +71,8 @@ def get_reviews_from_restuaraunts(city_string, pickle_path):
     print "Done Reading Review JSON..."
     print "Parsing Review JSON..."
     reviews = [json.loads(line) for line in lines]
+    print len(reviews)
+    return
     print "Done Parsing Review JSON..."
     restauraunt_id_to_review_text = {}
     for review in reviews:
@@ -84,10 +86,10 @@ def get_reviews_from_restuaraunts(city_string, pickle_path):
     pickle.dump(restauraunt_id_to_review_text, open( pickle_path, "wb" ))
     return restauraunt_id_to_review_text
 
-def clean_review(text):
-    cleaned_text = re.sub('\n', ' ', text)
-    cleaned_text = re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', cleaned_text)
-    cleaned_text = [x for x in cleaned_text if x!='']
 
+def get_words_from_text(text, stop_words = {}):
+    cleaned_text = re.sub('\\n', ' ', text)
+    cleaned_text = re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', cleaned_text)
+    cleaned_text = [x for x in cleaned_text if x!='' and x not in stop_words]
     return cleaned_text
     
