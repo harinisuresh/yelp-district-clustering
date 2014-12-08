@@ -78,10 +78,12 @@ def get_reviews_from_restuaraunts(city_string, pickle_path):
         if business_id in relevant_restaurant_ids:
             val = restauraunt_id_to_review_text.get(business_id, "")
             review_text = review["text"]
+            print review_text
             newVal = val + review["text"]
             restauraunt_id_to_review_text[business_id] = newVal
-    pickle.dump( restauraunt_id_to_review_text, open( pickle_path, "wb" ))
+    pickle.dump(restauraunt_id_to_review_text, open( pickle_path, "wb" ))
     return restauraunt_id_to_review_text
+
 
 def get_words_from_text(text, stop_words = {}):
     cleaned_text = re.sub('\\n', ' ', text)
