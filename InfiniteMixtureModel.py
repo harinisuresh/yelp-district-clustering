@@ -67,8 +67,8 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     im = plt.imread(my_map.image_path)
     implot = plt.imshow(im)
 
-    clusters = []
-    centers = []
+    clusters = np.zeros((clf.n_components,1))
+    centers = np.zeros((clf.n_components,1))
     for i, (mean, covar, color) in enumerate(zip(
             clf.means_, clf._get_covars(), color_iter)):
         # as the DP will not use every component it has access to
