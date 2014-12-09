@@ -67,17 +67,17 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     im = plt.imread(my_map.image_path)
     implot = plt.imshow(im)
 
-    clusters = np.zeros((clf.n_components,1))
-    centers = np.zeros((clf.n_components,1))
+    clusters = []
+    centers = []
     for i, (mean, covar, color) in enumerate(zip(
             clf.means_, clf._get_covars(), color_iter)):
         # as the DP will not use every component it has access to
         # unless it needs it, we shouldn't plot the redundant
         # components.
         cluster = data[classifications==i]
-        centers[i] = mean
+        centers.append(mean)
         #plt.scatter(cluster[:, 0], cluster[:, 1], .8, color=color)
-        clusters[i] = cluster
+        clusters.append(cluster)
    
     N_CLUSTERS = len(clusters)
     print "Infinite mixture model clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters", "alpha=", ALPHA
