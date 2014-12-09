@@ -28,13 +28,15 @@ def main():
         print lda.show_topic(i)
     for restaurant in restaurants:
         business_id  = restaurant["business_id"]
-        print "Prediction for: ", restaurant["name"], "is:"
+        print "Topic Prediction for", restaurant["name"], "is:"
         review = reviews[business_id]
         prediction = predictor.predict_topics(review)
-        print prediction
-        print "best topic:"
         sorted_prediction = sorted(prediction, key = operator.itemgetter(1))
-        print lda.show_topic(sorted_prediction[-1][0])
+        print sorted_prediction
+        print "Words from best topic:"
+        topic = lda.show_topic(sorted_prediction[-1][0])
+        sorted_topic = sorted(topic, key = operator.itemgetter(0))
+        print sorted_topic
 
 if __name__ == '__main__':
     main()
