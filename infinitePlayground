@@ -1,0 +1,20 @@
+import itertools
+
+from scipy import linalg
+import matplotlib as mpl
+
+from sklearn import mixture
+from sklearn.externals.six.moves import xrange
+"""Cluster restaurants on map"""
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+
+
+
+ALPHA = 100.
+    clf = mixture.DPGMM(n_components=10, covariance_type='diag', alpha=ALPHA,
+                       n_iter=100)
+    clf.fit(X)
+    classifications = clf.predict(X)

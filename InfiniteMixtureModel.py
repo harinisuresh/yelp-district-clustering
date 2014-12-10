@@ -63,7 +63,8 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
                        n_iter=100)
     clf.fit(X)
     classifications = clf.predict(X)
-    
+    print classifications
+
     im = plt.imread(my_map.image_path)
     implot = plt.imshow(im)
 
@@ -75,7 +76,9 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         # unless it needs it, we shouldn't plot the redundant
         # components.
         cluster = data[classifications==i]
+        print cluster
         centers.append(mean)
+        print mean
         #plt.scatter(cluster[:, 0], cluster[:, 1], .8, color=color)
         clusters.append(cluster)
    
