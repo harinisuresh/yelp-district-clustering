@@ -21,38 +21,38 @@ def pprint(model, data):
     filtered = map(lambda x: x[idx], flattened)
     print np.array(filtered)
 
+def means_filtered(means, idx):
+    return [means[i] for i in range(len(means)) if i in idx]
 
+def filter_means(means, thres=1.0):
+    new_means = [mean for mean in means if np.linalg.norm(mean) > thres]
+    return new_means
+    # idx = np.unique(model.predict(data))
+    # m_w_cov = [model.means_, model.weights_, model._get_covars()]
+    # flattened  = map(lambda x: np.array(x).flatten(), m_w_cov)
+    # filtered = map(lambda x: x[idx], flattened)
+    # return np.array(filtered)
+
+# def filter_means(means):
+#     flattened  = map(lambda x: np.array(x).flatten(), m_w_cov)
+#     filtered = map(lambda x: x[idx], flattened)
+#     return np.array(filtered)
 
 X = np.zeros((500,2))
-# X[0, 0] = 10
-# X[0, 1] = 10
-# X[1, 0] = 10 
-# X[1, 1] = 10
-# X[2, 0] = 1
-# X[2, 1] = 10
-# X[3, 0] = 15
-# X[3, 1] = 5
-# X[4, 0] = 2
-# X[4, 1] = 25
-# X[5, 0] = 14
-# X[5, 1] = 3
 
 
 meanX = 50.0
 meanY = 50.0
 var1 = 100.0
+
 for i in range(200):
-    X[i,0] = var1 * np.random.randn() + meanX
-    X[i,1] = var1 * np.random.randn() + meanY
-	#X[i,1] = random.randint(1,10)
+    X[i] = 15.0 * np.random.rand(1, 2) + np.array([10, 50])
 
 var2 = 150.0
 for i in range(200,500):
-    X[i,0] = var2 * np.random.randn() + 1200
-    X[i,1] = var2 * np.random.randn() + 400
+    X[i] = 12.0 * np.random.rand(1, 2) + np.array([50, 70])
 
 
-print "X1 izz", X
 # # Number of samples per component
 # n_samples = 100
 
@@ -67,60 +67,28 @@ print "X1 izz", X
 #     X[i, 1] = 3 * (np.sin(x) + np.random.normal(0, .2))
  
 #ALPHA = 100.
-clf = mixture.DPGMM(alpha=10.11)
+clf = mixture.DPGMM(n_components=500, covariance_type='full')
 
 
 clf.fit(X)
 
 classifications = clf.predict(X)
 print "classifications", classifications 
-# print clf.means_
-# print clf.n_components
-# print clf.weights_
-
-print "other"
-pprint(clf, X)
 
 print "means"
-print clf.means_
-
-
-
-
-
+idx = np.unique(classifications)
+print "idx =", idx
+new_means = means_filtered(clf.means_, idx)
+print "new means"
+print new_means
 # Number of samples per component
 n_samples = 500
 
 np.random.seed(0)
 #C = np.array([[0., -0.1], [1.7, .4]])
-X = np.r_[np.random.randn(n_samples, 2) + np.array([20, 50]),
-          .7 * np.random.randn(n_samples, 2) + np.array([50, 50])]
-
-# Generate random sample, two components
-# np.random.seed(0)
-# C = np.array([[0., -0.1], [1.7, .4]])
-# X = np.r_[np.dot(np.random.randn(n_samples, 2), C),
-#           .7 * np.random.randn(n_samples, 2) + np.array([-6, 3])]
-print "X isss:", X
-
-# Fit a mixture of Gaussians with EM using five components
-#gmm = mixture.GMM(n_components=5, covariance_type='full')
-#gmm.fit(X)
-
-# Fit a Dirichlet process mixture of Gaussians using five components
-dpgmm = mixture.DPGMM(n_components=5, covariance_type='full')
-
-dpgmm.fit(X)
-
-print "other"
-pprint(dpgmm, X)
-
-print "means"
-print dpgmm.means_
 
 color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
 
-clf = dpgmm
 title = 'Dirichlet Process GMM'
 splot = plt.subplot(2, 1, 1)
 Y_ = clf.predict(X)

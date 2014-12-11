@@ -23,6 +23,9 @@ from math import sqrt
 
 NUM_TOPICS = 50;
 
+def means_filtered(means, idx):
+    return [means[i] for i in range(len(means)) if i in idx]
+
 def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, lda, plotCenters=True):
     restaurant_coordinates = []
     restaurant_positions = []
@@ -46,92 +49,72 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         all_topic_weights.append(all_topic_weights_array_for_restaurant)
 
     data_array = []
+    pos_array = []
     for i in range(num_restaurants):
         topic_weights = all_topic_weights[i]
         pos = restaurant_positions[i]
         d = [pos.x, pos.y]
         d.extend(topic_weights)
         data_array.append(d)
+        pos_array.append([pos.x, pos.y])
 
-    data = np.array(data_array)
+    data = np.array(pos_array)
     X = data
 
     color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
 
-    ALPHA = 100.
-    clf = mixture.DPGMM(n_components=10, covariance_type='diag', alpha=ALPHA,
-                       n_iter=100)
-    clf.fit(X)
-    classifications = clf.predict(X)
-    print classifications
+    ALPHA = 1000.
+    # Fit a Dirichlet process mixture of Gaussians using five components
+    dpgmm = mixture.DPGMM(n_components=50, covariance_type='full', alpha=ALPHA)
 
-    im = plt.imread(my_map.image_path)
-    implot = plt.imshow(im)
+    dpgmm.fit(X)
 
-    clusters = []
-    centers = []
+    print "other"
+
+    print "means"
+    print dpgmm.means_
+
+    color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
+
+    clf = dpgmm
+    title = 'Dirichlet Process GMM'
+    splot = plt.subplot(2, 1, 1)
+    Y_ = clf.predict(X)
+    classifications = Y_
+
+
+    print "means"
+    print clf.means_
+    idx = np.unique(classifications)
+    new_means = means_filtered(clf.means_, idx)
+    print "new means"
+    print new_means
+
+
     for i, (mean, covar, color) in enumerate(zip(
             clf.means_, clf._get_covars(), color_iter)):
+        v, w = linalg.eigh(covar)
+        u = w[0] / linalg.norm(w[0])
         # as the DP will not use every component it has access to
         # unless it needs it, we shouldn't plot the redundant
         # components.
-        cluster = data[classifications==i]
-        print cluster
-        centers.append(mean)
-        print mean
-        #plt.scatter(cluster[:, 0], cluster[:, 1], .8, color=color)
-        clusters.append(cluster)
-   
-    N_CLUSTERS = len(clusters)
-    print "Infinite mixture model clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters", "alpha=", ALPHA
-    clusters_of_restaurants = [restaurants[classifications==i] for i in range(N_CLUSTERS)]
+        if not np.any(Y_ == i):
+            continue
+        plt.scatter(X[Y_ == i, 0], X[Y_ == i, 1], .8, color=color)
 
-    colors = create_n_unique_colors(N_CLUSTERS)
+        # Plot an ellipse to show the Gaussian component
+        angle = np.arctan(u[1] / u[0])
+        angle = 180 * angle / np.pi  # convert to degrees
+        ell = mpl.patches.Ellipse(mean, v[0], v[1], 180 + angle, color=color)
+        ell.set_clip_box(splot.bbox)
+        ell.set_alpha(0.5)
+        splot.add_artist(ell)
+            
+        plt.xticks(())
+        plt.yticks(())
+        plt.title(title)
 
-
-    #
-    
-    #
-
-    centers_x = [p[0] for p in centers]
-    centers_y = [p[1] for p in centers]
-    clusters_x = [[p[0] for p in clusters[i]] for i in range(N_CLUSTERS)]
-    clusters_y = [[p[1] for p in clusters[i]] for i in range(N_CLUSTERS)]
-
-    # Plot clusters of restaurants with different colors
-    for i in range(N_CLUSTERS):
-        cluster_x = clusters_x[i]
-        cluster_y = clusters_y[i]
-        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.5)
-
-    if plotCenters:
-        plt.scatter(centers_x, centers_y, marker='x', color=[.1,.1,.1], s=60, edgecolor='black',
-               alpha=0.9)
-        plt.scatter(centers_x, centers_y, marker='o', color=[.1,.1,.1], s=60, facecolors='none',
-               alpha=0.9)
-
-    else:
-
-    # Plot labels over map
-        for i in range(N_CLUSTERS):
-            center_position = Position(centers_x[i], centers_y[i])
-            restaurants = clusters_of_restaurants[i]
-            label_text, label_weight = make_label_text_for_cluster(center_position, restaurants, restaurant_ids_to_topics, lda)
-            #restaurant = restaurants[0]
-            #font_size_1 = 7*(1+sqrt(label_weight[0]))**2;
-            #font_size_2 = 7*(1+sqrt(label_weight[1]))**2;
-            font_size_1 = 10;
-            font_size_2 = 10;
-            plt.annotate(label_text[0], xy = (centers_x[i], centers_y[i]), xytext = (centers_x[i]-(len(label_text[0])/2.0)*font_size_1, centers_y[i]+font_size_1), fontsize=font_size_1)
-            plt.annotate(label_text[1], xy = (centers_x[i], centers_y[i]), xytext = (centers_x[i]-(len(label_text[1])/2.0)*font_size_2, centers_y[i]-font_size_2), fontsize=font_size_2)
-            #my_map.add_label_to_image(label_text[0], center_position-8, None, False, 1.0)
-            #my_map.add_label_to_image(label_text[1], center_position+8, None, False, 1.0)
-
-    #my_map.image.show()
     plt.show()
-
-    #for i in range(N_CLUSTERS):
-     #   plt.annotate(label, xy = (x, y), xytext = (0, 0), textcoords = 'offset points')
 
 def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_ids_to_topics, lda):
     topic_total_weights = {}
