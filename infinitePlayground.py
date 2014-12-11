@@ -38,18 +38,18 @@ X = np.zeros((500,2))
 # X[5, 1] = 3
 
 
-meanX = 50.0
+meanX = 20.0
 meanY = 50.0
-var1 = 100.0
-for i in range(200):
-    X[i,0] = var1 * np.random.randn() + meanX
-    X[i,1] = var1 * np.random.randn() + meanY
+var1= 1
+for i in range(250):
+    X[i,0] = var1 * np.random.rand() + meanX
+    X[i,1] = var1 * np.random.rand() + meanY
 	#X[i,1] = random.randint(1,10)
 
-var2 = 150.0
-for i in range(200,500):
-    X[i,0] = var2 * np.random.randn() + 1200
-    X[i,1] = var2 * np.random.randn() + 400
+var2 = .7
+for i in range(250,500):
+    X[i,0] = var2 * np.random.rand() + 50
+    X[i,1] = var2 * np.random.rand() + 50
 
 
 print "X1 izz", X
@@ -67,7 +67,7 @@ print "X1 izz", X
 #     X[i, 1] = 3 * (np.sin(x) + np.random.normal(0, .2))
  
 #ALPHA = 100.
-clf = mixture.DPGMM(alpha=10.11)
+clf = mixture.DPGMM(alpha=100.11)
 
 
 clf.fit(X)
@@ -89,19 +89,19 @@ print clf.means_
 
 
 # Number of samples per component
-n_samples = 500
+n_samples = 250
 
-np.random.seed(0)
+#np.random.seed(0)
 #C = np.array([[0., -0.1], [1.7, .4]])
-X = np.r_[np.random.randn(n_samples, 2) + np.array([20, 50]),
-          .7 * np.random.randn(n_samples, 2) + np.array([50, 50])]
+#X2 = np.r_[np.random.randn(n_samples, 2) + np.array([20, 50]),
+          #.7 * np.random.randn(n_samples, 2) + np.array([50, 50])]
 
 # Generate random sample, two components
 # np.random.seed(0)
 # C = np.array([[0., -0.1], [1.7, .4]])
 # X = np.r_[np.dot(np.random.randn(n_samples, 2), C),
 #           .7 * np.random.randn(n_samples, 2) + np.array([-6, 3])]
-print "X isss:", X
+print "X isss:", X2
 
 # Fit a mixture of Gaussians with EM using five components
 #gmm = mixture.GMM(n_components=5, covariance_type='full')
@@ -110,17 +110,17 @@ print "X isss:", X
 # Fit a Dirichlet process mixture of Gaussians using five components
 dpgmm = mixture.DPGMM(n_components=5, covariance_type='full')
 
-dpgmm.fit(X)
+dpgmm.fit(X2)
 
 print "other"
-pprint(dpgmm, X)
+pprint(dpgmm, X2)
 
 print "means"
 print dpgmm.means_
 
 color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
 
-clf = dpgmm
+#clf = dpgmm
 title = 'Dirichlet Process GMM'
 splot = plt.subplot(2, 1, 1)
 Y_ = clf.predict(X)

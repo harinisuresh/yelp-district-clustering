@@ -45,14 +45,14 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         all_topic_weights_array_for_restaurant = make_topic_array_from_tuple_list(all_topic_weights_for_restaurant, NUM_TOPICS, LDA_ClUSTER_SCALE_FACTOR)
         all_topic_weights.append(all_topic_weights_array_for_restaurant)
 
-    data_array = []
+    data_array = np.array()
     for i in range(num_restaurants):
         topic_weights = all_topic_weights[i]
         pos = restaurant_positions[i]
         d = [pos.x, pos.y]
         d.extend(topic_weights)
-        data_array.append(d)
-
+        #data_array.append(d)
+        np.r_(data_array, d)
     data = np.array(data_array)
     X = data
 
