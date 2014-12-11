@@ -88,6 +88,11 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
 
     colors = create_n_unique_colors(N_CLUSTERS)
 
+
+    #
+    
+    #
+
     centers_x = [p[0] for p in centers]
     centers_y = [p[1] for p in centers]
     clusters_x = [[p[0] for p in clusters[i]] for i in range(N_CLUSTERS)]
