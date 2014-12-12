@@ -21,6 +21,17 @@ def get_vegas_restaurants():
 def get_vegas_restaurants_id_to_restaurant():
     return get_restaurants_id_to_restaurant("Las Vegas")
 
+def get_num_restaurants_of_category(restaurants, category):
+    return len([restaurant for restaurant in restaurants if category in restaurant["categories"]])
+
+def category_bag_of_words(restaurants):
+    bag = {}
+    for restaurant in restaurants:
+        categories = restaurant["categories"]
+        for c in categories:
+            bag[c] = bag.get(c,0)+1
+    return bag
+
 def get_restaurants(city_string, pickle_path):
     if pickle_path and os.path.exists(pickle_path):
         print "Loading pickle"
@@ -91,3 +102,58 @@ def get_words_from_text(text, stop_words = {}):
     cleaned_text = [x for x in cleaned_text if x!='' and x not in stop_words]
     return cleaned_text
     
+
+def get_topic_labels():
+    labels = [\
+    "Buffet/Upscale",
+    "Steak & Eggs",
+    "Tacos",
+    "Mexican",
+    "Pho",
+    "Seafood/Buffet",
+    "Sports Bar",
+    "Nightlife",
+    "Brunch",
+    "Ramen",
+    "Chinese",
+    "Seafood",
+    "Dim Sum",
+    "Vegan/Healthy",
+    "Tapas",
+    "Upscale",
+    "Buffet",
+    "Indian",
+    "Burgers",
+    "Greek",
+    "Fish & Chips",
+    "Street Vendors",
+    "Korean BBQ",
+    "Mexican/Bar",
+    "Italian",
+    "Pizza",
+    "BBQ",
+    "Burgers",
+    "Thai",
+    "Waffles/Brunch",
+    "Bad Service",
+    "Luxe",
+    "Dessert",
+    "Sushi",
+    "Sandwich",
+    "Asian/Authentic",
+    "Burritos",
+    "Steakhouse",
+    "Exotic American",
+    "Wine/Upscale",
+    "Cafe",
+    "Upscale",
+    "Sushi",
+    "Soup",
+    "Oysters",
+    "Casino/Hotel",
+    "Noodles",
+    "Chinese",
+    "Buffet",
+    "Prime Rib",
+    ]
+    return labels

@@ -33,7 +33,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
 
-    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width()*10
+    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width()/10.0
     #LDA_ClUSTER_SCALE_FACTOR = 0.0
 
     num_topics = 50
@@ -58,14 +58,12 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         data_array.append(d)
         pos_array.append([pos.x, pos.y])
 
-    data = np.array(pos_array)
+    data = np.array(data_array)
     X = data
 
-    color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
-
-    ALPHA = 1000.
+    ALPHA = 0.001
     # Fit a Dirichlet process mixture of Gaussians using five components
-    dpgmm = mixture.DPGMM(n_components=50, covariance_type='full', alpha=ALPHA)
+    dpgmm = mixture.GMM(n_components=30, covariance_type='full')
 
     dpgmm.fit(X)
 
@@ -74,11 +72,11 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     print "means"
     print dpgmm.means_
 
-    color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
+    # color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
+    color_iter = itertools.cycle(create_n_unique_colors(30))
 
     clf = dpgmm
     title = 'Dirichlet Process GMM'
-    splot = plt.subplot(2, 1, 1)
     Y_ = clf.predict(X)
     classifications = Y_
 
@@ -90,6 +88,8 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     print "new means"
     print new_means
 
+    im = plt.imread(my_map.image_path)
+    implot = plt.imshow(im)
 
     for i, (mean, covar, color) in enumerate(zip(
             clf.means_, clf._get_covars(), color_iter)):
@@ -106,9 +106,9 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         angle = np.arctan(u[1] / u[0])
         angle = 180 * angle / np.pi  # convert to degrees
         ell = mpl.patches.Ellipse(mean, v[0], v[1], 180 + angle, color=color)
-        ell.set_clip_box(splot.bbox)
+        #ell.set_clip_box(plt.bbox)
         ell.set_alpha(0.5)
-        splot.add_artist(ell)
+        #splot.add_artist(ell)
             
         plt.xticks(())
         plt.yticks(())

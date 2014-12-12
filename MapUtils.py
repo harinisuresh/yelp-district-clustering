@@ -44,11 +44,12 @@ class Rectangle:
         return Position((self.left + self.right)*0.5 , (self.top + self.bottom)*0.5)
 
 def create_n_unique_colors(n):
+    print "unique colors"
     colors = []
     h = 0.0
     dh = 1.0/n
     for i in range(n):
-        l = .5
+        l = .65
         s = .8
         h += dh
         rgb_color = list(colorsys.hls_to_rgb(h, l, s))
