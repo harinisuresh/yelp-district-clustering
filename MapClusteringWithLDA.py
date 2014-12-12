@@ -5,7 +5,7 @@ import numpy as np
 from scipy.cluster.vq import vq, kmeans, whiten
 from MapUtils import Coordinate, Position, create_n_unique_colors
 from Map import Map
-from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_vegas_reviews
+from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_vegas_reviews, get_topic_labels
 from LDAPredictor import LDAPredictor
 import math
 import random
@@ -16,15 +16,15 @@ from math import sqrt
 
 NUM_TOPICS = 50;
 
-def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, lda):
+def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, lda, use_human_labels=True):
     restaurant_coordinates = []
     restaurant_positions = []
     all_topic_weights = []
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
 
-    N_CLUSTERS = 23
-    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width()*10
+    N_CLUSTERS = 30
+    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width()/20.0
     #LDA_ClUSTER_SCALE_FACTOR = 0.0
 
     num_topics = 50
@@ -83,7 +83,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     for i in range(N_CLUSTERS):
         center_position = Position(centers_x[i], centers_y[i])
         restaurants = clusters_of_restaurants[i]
-        label_text, label_weight = make_label_text_for_cluster(center_position, restaurants, restaurant_ids_to_topics, lda)
+        label_text, label_weight = make_label_text_for_cluster(center_position, restaurants, restaurant_ids_to_topics, lda, use_human_labels)
         #restaurant = restaurants[0]
         #font_size_1 = 7*(1+sqrt(label_weight[0]))**2;
         #font_size_2 = 7*(1+sqrt(label_weight[1]))**2;
@@ -94,13 +94,14 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         #my_map.add_label_to_image(label_text[0], center_position-8, None, False, 1.0)
         #my_map.add_label_to_image(label_text[1], center_position+8, None, False, 1.0)
 
+    plt.title("Las Vegas K-Means Clustering With Labels")
     #my_map.image.show()
     plt.show()
 
     #for i in range(N_CLUSTERS):
      #   plt.annotate(label, xy = (x, y), xytext = (0, 0), textcoords = 'offset points')
 
-def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_ids_to_topics, lda):
+def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_ids_to_topics, lda, use_human_labels=True):
     topic_total_weights = {}
     for restaurant in cluster_restaurants:
         business_id = restaurant["business_id"]
@@ -139,6 +140,11 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
     print best_weights_and_words
 
     best_words = [a[1] for a in best_weights_and_words]
+
+    if use_human_labels:
+        topic_labels = get_topic_labels()
+        best_words = [topic_labels[pair[0]] for pair in best_topic_id_pairs]
+
     return best_words, best_topic_weights
 
 def run(my_map, reviews, restaurants):
@@ -156,15 +162,12 @@ def run(my_map, reviews, restaurants):
 
 def normalize_predictions(predictions, restaurants): 
     all_weights = predictions.values()
-    print all_weights[0]
     all_weights_sum = np.sum(all_weights, axis=0)
-    print all_weights_sum
     for restaurant in restaurants:
         business_id  = restaurant["business_id"]
         weights = predictions[business_id]
         normalized_weights = np.divide(np.array(weights,dtype=float), np.array(all_weights_sum, dtype=float))
         predictions[business_id] = make_tuple_list_from_topic_array(normalized_weights)
-    print predictions.values()[0]
     return predictions
 
 

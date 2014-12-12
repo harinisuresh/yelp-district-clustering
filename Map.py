@@ -71,11 +71,11 @@ class Map:
     @staticmethod
     def vegas():
         """Returns the map object of vegas"""
-        imagePath = "images/vegas.png"
-        top_latitude = 36.292541
-        bottom_latitude = 36.032546
-        left_longitude = -115.342712
-        right_longitude = -115.000076
+        imagePath = "images/vegas2.png"
+        top_latitude = 36.310359
+        bottom_latitude = 35.980255
+        left_longitude = -115.357904
+        right_longitude = -114.949179
 
         return Map(Coordinate(top_latitude,left_longitude), \
          Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\
