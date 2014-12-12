@@ -21,21 +21,24 @@ def pprint(model, data):
     filtered = map(lambda x: x[idx], flattened)
     print np.array(filtered)
 
+def means_filtered(means, idx):
+    return [means[i] for i in range(len(means)) if i in idx]
 
+def filter_means(means, thres=1.0):
+    new_means = [mean for mean in means if np.linalg.norm(mean) > thres]
+    return new_means
+    # idx = np.unique(model.predict(data))
+    # m_w_cov = [model.means_, model.weights_, model._get_covars()]
+    # flattened  = map(lambda x: np.array(x).flatten(), m_w_cov)
+    # filtered = map(lambda x: x[idx], flattened)
+    # return np.array(filtered)
+
+# def filter_means(means):
+#     flattened  = map(lambda x: np.array(x).flatten(), m_w_cov)
+#     filtered = map(lambda x: x[idx], flattened)
+#     return np.array(filtered)
 
 X = np.zeros((500,2))
-# X[0, 0] = 10
-# X[0, 1] = 10
-# X[1, 0] = 10 
-# X[1, 1] = 10
-# X[2, 0] = 1
-# X[2, 1] = 10
-# X[3, 0] = 15
-# X[3, 1] = 5
-# X[4, 0] = 2
-# X[4, 1] = 25
-# X[5, 0] = 14
-# X[5, 1] = 3
 
 
 meanX = 20.0
@@ -52,7 +55,6 @@ for i in range(250,500):
     X[i,1] = var2 * np.random.rand() + 50
 
 
-print "X1 izz", X
 # # Number of samples per component
 # n_samples = 100
 
@@ -67,27 +69,21 @@ print "X1 izz", X
 #     X[i, 1] = 3 * (np.sin(x) + np.random.normal(0, .2))
  
 #ALPHA = 100.
-clf = mixture.DPGMM(alpha=100.11)
+
+clf = mixture.DPGMM(n_components=500, covariance_type='full')
 
 
 clf.fit(X)
 
 classifications = clf.predict(X)
 print "classifications", classifications 
-# print clf.means_
-# print clf.n_components
-# print clf.weights_
-
-print "other"
-pprint(clf, X)
 
 print "means"
-print clf.means_
-
-
-
-
-
+idx = np.unique(classifications)
+print "idx =", idx
+new_means = means_filtered(clf.means_, idx)
+print "new means"
+print new_means
 # Number of samples per component
 n_samples = 250
 
@@ -121,6 +117,7 @@ print dpgmm.means_
 color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
 
 #clf = dpgmm
+
 title = 'Dirichlet Process GMM'
 splot = plt.subplot(2, 1, 1)
 Y_ = clf.predict(X)

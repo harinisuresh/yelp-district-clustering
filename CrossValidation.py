@@ -1,10 +1,3 @@
-import itertools
-
-from scipy import linalg
-import matplotlib as mpl
-
-from sklearn import mixture
-from sklearn.externals.six.moves import xrange
 """Cluster restaurants on map"""
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -23,20 +16,23 @@ from math import sqrt
 
 NUM_TOPICS = 50;
 
-def means_filtered(means, idx):
-    return [means[i] for i in range(len(means)) if i in idx]
-
-def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, lda, plotCenters=True):
+def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, lda):
     restaurant_coordinates = []
     restaurant_positions = []
     all_topic_weights = []
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
 
+    N_CLUSTERS = 23
     LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width()*10
     #LDA_ClUSTER_SCALE_FACTOR = 0.0
 
     num_topics = 50
+    print "K-mean clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
+
+     
+
+
 
     for restaurant in restaurants:
         business_id = restaurant["business_id"]
@@ -48,76 +44,87 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         all_topic_weights_array_for_restaurant = make_topic_array_from_tuple_list(all_topic_weights_for_restaurant, NUM_TOPICS, LDA_ClUSTER_SCALE_FACTOR)
         all_topic_weights.append(all_topic_weights_array_for_restaurant)
 
-
     data_array = []
-    pos_array = []
     for i in range(num_restaurants):
         topic_weights = all_topic_weights[i]
         pos = restaurant_positions[i]
         d = [pos.x, pos.y]
         d.extend(topic_weights)
         data_array.append(d)
+
+    print data_array[1:5]    
     data = np.array(data_array)
-    data_array.append(d)
-    pos_array.append([pos.x, pos.y])
-
-    data = np.array(pos_array)
-    X = data
-
-    color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
-
-    ALPHA = 1000.
-    # Fit a Dirichlet process mixture of Gaussians using five components
-    dpgmm = mixture.DPGMM(n_components=50, covariance_type='full', alpha=ALPHA)
-
-    dpgmm.fit(X)
-
-    print "other"
-
-    print "means"
-    print dpgmm.means_
-
-    color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm'])
-
-    clf = dpgmm
-    title = 'Dirichlet Process GMM'
-    splot = plt.subplot(2, 1, 1)
-    Y_ = clf.predict(X)
-    classifications = Y_
+    
 
 
-    print "means"
-    print clf.means_
-    idx = np.unique(classifications)
-    new_means = means_filtered(clf.means_, idx)
-    print "new means"
-    print new_means
+    input_data = data[np.arange(0,num_restaurants+1,2)] #even rows
+    test_data = data[np.arange(1,num_restaurants,2)] #odd rows
+
+    #train k-means on half the data
+    input_centers, input_center_dist = kmeans(input_data, N_CLUSTERS, iter=200)
+    
+    #get classifications for test data not used in training
+    test_classifications, test_classification_dist = vq(test_data, input_centers)
+
+    #train k-means on all the data
+    all_centers, all_center_dist = kmeans(data, N_CLUSTERS, iter=200)
+
+    #get classifications for all data 
+    all_classifications, all_classification_dist = vq(data, all_centers)
+
+    #classifications from training on all data, corresponding to test data indices
+    all_classifications 
 
 
-    for i, (mean, covar, color) in enumerate(zip(
-            clf.means_, clf._get_covars(), color_iter)):
-        v, w = linalg.eigh(covar)
-        u = w[0] / linalg.norm(w[0])
-        # as the DP will not use every component it has access to
-        # unless it needs it, we shouldn't plot the redundant
-        # components.
-        if not np.any(Y_ == i):
-            continue
-        plt.scatter(X[Y_ == i, 0], X[Y_ == i, 1], .8, color=color)
 
-        # Plot an ellipse to show the Gaussian component
-        angle = np.arctan(u[1] / u[0])
-        angle = 180 * angle / np.pi  # convert to degrees
-        ell = mpl.patches.Ellipse(mean, v[0], v[1], 180 + angle, color=color)
-        ell.set_clip_box(splot.bbox)
-        ell.set_alpha(0.5)
-        splot.add_artist(ell)
-            
-        plt.xticks(())
-        plt.yticks(())
-        plt.title(title)
 
+
+    im = plt.imread(my_map.image_path)
+    implot = plt.imshow(im)
+
+    clusters = [data[classifications==i] for i in range(N_CLUSTERS)]
+    clusters_of_restaurants = [restaurants[classifications==i] for i in range(N_CLUSTERS)]
+
+    colors = create_n_unique_colors(N_CLUSTERS)
+
+    centers_x = [p[0] for p in centers]
+    centers_y = [p[1] for p in centers]
+    clusters_x = [[p[0] for p in clusters[i]] for i in range(N_CLUSTERS)]
+    clusters_y = [[p[1] for p in clusters[i]] for i in range(N_CLUSTERS)]
+
+    # Plot clusters of restaurants with different colors
+    for i in range(N_CLUSTERS):
+        cluster_x = clusters_x[i]
+        cluster_y = clusters_y[i]
+        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.5)
+
+    # Plot centers
+    #plt.scatter(centers_x, centers_y, marker='x', color=[.1,.1,.1], s=60, edgecolor='black',
+     #       alpha=0.9)
+    #plt.scatter(centers_x, centers_y, marker='o', color=[.1,.1,.1], s=60, facecolors='none',
+      #      alpha=0.9)
+    #plt.show()
+
+    # Plot labels over map
+    for i in range(N_CLUSTERS):
+        center_position = Position(centers_x[i], centers_y[i])
+        restaurants = clusters_of_restaurants[i]
+        label_text, label_weight = make_label_text_for_cluster(center_position, restaurants, restaurant_ids_to_topics, lda)
+        #restaurant = restaurants[0]
+        #font_size_1 = 7*(1+sqrt(label_weight[0]))**2;
+        #font_size_2 = 7*(1+sqrt(label_weight[1]))**2;
+        font_size_1 = 10;
+        font_size_2 = 10;
+        plt.annotate(label_text[0], xy = (centers_x[i], centers_y[i]), xytext = (centers_x[i]-(len(label_text[0])/2.0)*font_size_1, centers_y[i]+font_size_1), fontsize=font_size_1)
+        plt.annotate(label_text[1], xy = (centers_x[i], centers_y[i]), xytext = (centers_x[i]-(len(label_text[1])/2.0)*font_size_2, centers_y[i]-font_size_2), fontsize=font_size_2)
+        #my_map.add_label_to_image(label_text[0], center_position-8, None, False, 1.0)
+        #my_map.add_label_to_image(label_text[1], center_position+8, None, False, 1.0)
+
+    #my_map.image.show()
     plt.show()
+
+    #for i in range(N_CLUSTERS):
+     #   plt.annotate(label, xy = (x, y), xytext = (0, 0), textcoords = 'offset points')
 
 def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_ids_to_topics, lda):
     topic_total_weights = {}
@@ -185,6 +192,7 @@ def normalize_predictions(predictions, restaurants):
         predictions[business_id] = make_tuple_list_from_topic_array(normalized_weights)
     print predictions.values()[0]
     return predictions
+
 
 
 def main():
