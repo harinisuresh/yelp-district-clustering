@@ -139,7 +139,7 @@ def get_topic_labels():
     "Luxe",
     "Dessert",
     "Sushi",
-    "Sandwich",
+    "Deli",
     "Asian/Authentic",
     "Burritos",
     "Steakhouse",

@@ -71,7 +71,8 @@ def bounding_box(X):
 def gap_statistic(X):
     (xmin,xmax), (ymin,ymax) = bounding_box(X)
     # Dispersion for real distribution
-    ks = np.arange(5,40,5)
+    print "new Gap"
+    ks = np.arange(24,38,2)
     Wks = np.zeros(len(ks))
     Wkbs = np.zeros(len(ks))
     sk = np.zeros(len(ks))

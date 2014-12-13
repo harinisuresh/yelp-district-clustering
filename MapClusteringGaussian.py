@@ -23,7 +23,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
 
-    N_CLUSTERS = 25
+    N_CLUSTERS = 30
     K = np.sqrt(5.0/6.0)
     PIXELS_PER_MILE = 48.684
     LDA_ClUSTER_SCALE_FACTOR =  K*PIXELS_PER_MILE

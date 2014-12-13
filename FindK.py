@@ -24,7 +24,9 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
 
-    LDA_ClUSTER_SCALE_FACTOR =  my_map.image_width()*20.0
+    K = np.sqrt(5.0/6.0)
+    PIXELS_PER_MILE = 48.684
+    LDA_ClUSTER_SCALE_FACTOR =  K*PIXELS_PER_MILE
     #LDA_ClUSTER_SCALE_FACTOR = 0.0
 
     num_topics = 50
@@ -68,15 +70,21 @@ def run(my_map, reviews, restaurants):
 
 def normalize_predictions(predictions, restaurants): 
     all_weights = predictions.values()
-    print all_weights[0]
     all_weights_sum = np.sum(all_weights, axis=0)
-    print all_weights_sum
+    normalized_weights_total = 0
     for restaurant in restaurants:
         business_id  = restaurant["business_id"]
         weights = predictions[business_id]
         normalized_weights = np.divide(np.array(weights,dtype=float), np.array(all_weights_sum, dtype=float))
-        predictions[business_id] = make_tuple_list_from_topic_array(normalized_weights)
-    print predictions.values()[0]
+        normalized_weights_total += sum(normalized_weights)
+        predictions[business_id] = normalized_weights
+    mean_weights_sum = normalized_weights_total/len(restaurants)
+    for restaurant in restaurants:
+        business_id = restaurant["business_id"]
+        weights = predictions[business_id] 
+        weights /= mean_weights_sum
+        predictions[business_id] = make_tuple_list_from_topic_array(weights)
+
     return predictions
 
 
