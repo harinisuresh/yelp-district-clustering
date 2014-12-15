@@ -66,7 +66,7 @@ def main():
     dictionary_path = "models/dictionary.dict"
     corpus_path = "models/corpus.lda-c"
     lda_num_topics = 50
-    lda_model_path = "models/lda_model_50_topics.lda"
+    lda_model_path = "models/lda_model.lda"
     city = "Las Vegas"
     reviews = get_reviews_from_restuaraunts(city)
 

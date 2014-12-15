@@ -9,7 +9,7 @@ from DataImporter import get_reviews_from_restuaraunts, get_vegas_restaurants, g
 class LDAPredictor():
     def __init__(self):
         self.dictionary = corpora.Dictionary.load("models/dictionary.dict")
-        self.lda = LdaModel.load("models/lda_model_50_topics.lda")
+        self.lda = LdaModel.load("models/lda_model.lda")
     
     def predict_topics(self, review_text):
         stop_set = sktext.ENGLISH_STOP_WORDS
