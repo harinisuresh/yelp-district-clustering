@@ -98,6 +98,10 @@ target/
 *.synctex.gz
 *.fdb_latexmk
 yelp_dataset/
+paper/
 .DS_Store
 *.DS_Store
-pickles/
+pickles/*
+!pickles/empty.txt
+models/*
+!models/empty.txt

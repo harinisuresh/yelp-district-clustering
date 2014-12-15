@@ -11,7 +11,7 @@ import math
 import random
 import operator
 from Utils import make_topic_array_from_tuple_list
-from Utils import make_tuple_list_from_topic_array
+from Utils import make_tuple_list_from_topic_array, print_median_std_from_clusters
 from math import sqrt
 
 NUM_TOPICS = 50;
@@ -55,6 +55,8 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     centers, center_dist = kmeans(data, N_CLUSTERS, iter=200)
     classifications, classification_dist = vq(data, centers)
 
+
+    plt.figure(1)
     im = plt.imread(my_map.image_path)
     implot = plt.imshow(im)
 
@@ -74,31 +76,31 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         cluster_y = clusters_y[i]
         plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.5)
 
-    # Plot centers
-    #plt.scatter(centers_x, centers_y, marker='x', color=[.1,.1,.1], s=60, edgecolor='black',
-     #       alpha=0.9)
-    #plt.scatter(centers_x, centers_y, marker='o', color=[.1,.1,.1], s=60, facecolors='none',
-      #      alpha=0.9)
-    #plt.show()
+    plt.title("Las Vegas K-Means Clustering With Labels")
+    plt.show()
 
-    # Plot labels over map
+    plt.figure(2)
+
+    im = plt.imread(my_map.image_path)
+    implot = plt.imshow(im)
+
+    for i in range(N_CLUSTERS):
+        cluster_x = clusters_x[i]
+        cluster_y = clusters_y[i]
+        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.5)
+
     for i in range(N_CLUSTERS):
         center_position = Position(centers_x[i], centers_y[i])
         restaurants = clusters_of_restaurants[i]
         label_text, label_weight = make_label_text_for_cluster(center_position, restaurants, restaurant_ids_to_topics, lda, use_human_labels)
-        #restaurant = restaurants[0]
-        #font_size_1 = 7*(1+sqrt(label_weight[0]))**2;
-        #font_size_2 = 7*(1+sqrt(label_weight[1]))**2;
         font_size_1 = 10;
         font_size_2 = 10;
         plt.annotate(label_text[0], xy = (centers_x[i], centers_y[i]), xytext = (centers_x[i]-(len(label_text[0])/2.0)*font_size_1, centers_y[i]+font_size_1), fontsize=font_size_1)
         plt.annotate(label_text[1], xy = (centers_x[i], centers_y[i]), xytext = (centers_x[i]-(len(label_text[1])/2.0)*font_size_2, centers_y[i]-font_size_2), fontsize=font_size_2)
-        #my_map.add_label_to_image(label_text[0], center_position-8, None, False, 1.0)
-        #my_map.add_label_to_image(label_text[1], center_position+8, None, False, 1.0)
-
     plt.title("Las Vegas K-Means Clustering With Labels")
-    #my_map.image.show()
+
     plt.show()
+    print_median_std_from_clusters(clusters_of_restaurants)
 
     #for i in range(N_CLUSTERS):
      #   plt.annotate(label, xy = (x, y), xytext = (0, 0), textcoords = 'offset points')

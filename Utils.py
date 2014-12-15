@@ -25,3 +25,28 @@ def gaussian(x, mean, variance):
     c = variance
     dist_squared = np.sum((x - b)**2)
     return a*math.exp(-1*dist_squared/(2*c*c))
+
+
+def print_median_std_from_clusters(clusters):
+    counts = []
+    num_points = sum([len(cluster) for cluster in clusters])
+    mean = num_points/len(clusters)
+    SD_sum = 0.0
+    for i in range(len(clusters)):
+        cluster = clusters[i]
+        count = len(cluster)
+        counts.append(count)
+        v = (mean - count)**2
+        SD_sum += v
+    ave_var = SD_sum/len(clusters)
+    SD = math.sqrt(ave_var)
+    med = median(counts)
+    print "Standard deviation", SD
+    print "median", med
+
+def median(mylist):
+    sorts = sorted(mylist)
+    length = len(sorts)
+    if not length % 2:
+        return (sorts[length / 2] + sorts[length / 2 - 1]) / 2.0
+    return sorts[length / 2]

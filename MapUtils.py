@@ -1,6 +1,7 @@
 """Utils used by map"""
 
 import colorsys
+import math
 
 class Position:
     """Position is a class for storing x and y"""
@@ -55,3 +56,9 @@ def create_n_unique_colors(n):
         rgb_color = list(colorsys.hls_to_rgb(h, l, s))
         colors.append(rgb_color)
     return colors
+
+def variances_to_rotation(var_x, var_y):
+    ratio = var_y/var_x
+    scale = 1/(1+math.exp(-ratio))
+    scale = max(0.5, scale)
+    return 45 - 90*scale

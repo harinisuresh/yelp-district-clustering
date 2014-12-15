@@ -1,0 +1,1 @@
+This is just here so this folder exists for pickles. This folder would otherwise be .gitignored and not part of the directory structure of a newly cloned repo.

@@ -66,7 +66,7 @@ def get_vegas_reviews():
     return get_reviews_from_restuaraunts("Las Vegas", VEGAS_REVIEWS_PATH)
 
 def get_phoenix_reviews():
-    return get_reviews_from_restuaraunts("Las Vegas", VEGAS_REVIEWS_PATH)
+    return get_reviews_from_restuaraunts("Phoenix", PHOENIX_REVIEWS_PATH)
 
 def get_reviews_from_restuaraunts(city_string, pickle_path):
     if pickle_path and os.path.exists(pickle_path):
@@ -74,7 +74,6 @@ def get_reviews_from_restuaraunts(city_string, pickle_path):
         return pickle.load( open(pickle_path, "rb" ))
     restaurants = get_restaurants(city_string, None)
     relevant_restaurant_ids = {restaurant["business_id"] for restaurant in restaurants}
-    print restaurants[0]["name"]
     f = open('yelp_dataset/yelp_academic_dataset_review.json', "r")
     print "Reading Review JSON..."
     lines = [line for line in f]
@@ -89,7 +88,6 @@ def get_reviews_from_restuaraunts(city_string, pickle_path):
         if business_id in relevant_restaurant_ids:
             val = restauraunt_id_to_review_text.get(business_id, "")
             review_text = review["text"]
-            print review_text
             newVal = val + review["text"]
             restauraunt_id_to_review_text[business_id] = newVal
     pickle.dump(restauraunt_id_to_review_text, open( pickle_path, "wb" ))
@@ -101,7 +99,10 @@ def get_words_from_text(text, stop_words = {}):
     cleaned_text = re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', cleaned_text)
     cleaned_text = [x for x in cleaned_text if x!='' and x not in stop_words]
     return cleaned_text
-    
+
+def get_reviews_of_restuarant_from_phoenix(rest_id):
+    revs = get_phoenix_reviews()
+    return revs[rest_id]
 
 def get_topic_labels():
     labels = [\
