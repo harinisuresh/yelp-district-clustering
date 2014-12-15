@@ -6,6 +6,7 @@ from scipy.cluster.vq import vq, kmeans, whiten
 from MapUtils import Coordinate, Position, create_n_unique_colors
 from Map import Map
 from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_vegas_reviews, get_topic_labels
+import DataImporter
 from LDAPredictor import LDAPredictor
 import math
 import random
@@ -13,6 +14,7 @@ import operator
 from Utils import make_topic_array_from_tuple_list
 from Utils import make_tuple_list_from_topic_array, print_median_std_from_clusters
 from math import sqrt
+from vonoroi import plot_vonoroi_from_points
 
 NUM_TOPICS = 50;
 
@@ -23,7 +25,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     num_restaurants = restaurants.size
     # N_CLUSTERS = int(max(2,math.sqrt(num_restaurants/2.0)))
 
-    N_CLUSTERS = 25
+    N_CLUSTERS = 30
     K = np.sqrt(5.0/6.0)
     PIXELS_PER_MILE = 48.684
     LDA_ClUSTER_SCALE_FACTOR =  K*PIXELS_PER_MILE
@@ -54,6 +56,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     data = np.array(data_array)
     centers, center_dist = kmeans(data, N_CLUSTERS, iter=200)
     classifications, classification_dist = vq(data, centers)
+
 
 
     plt.figure(1)
@@ -89,7 +92,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
         cluster_y = clusters_y[i]
         plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.5)
 
-    for i in range(N_CLUSTERS):
+    for i in range(len(centers_x)):
         center_position = Position(centers_x[i], centers_y[i])
         restaurants = clusters_of_restaurants[i]
         label_text, label_weight = make_label_text_for_cluster(center_position, restaurants, restaurant_ids_to_topics, lda, use_human_labels)
@@ -100,6 +103,7 @@ def create_topic_cluster_and_map(restaurants, restaurant_ids_to_topics, my_map, 
     plt.title("Las Vegas K-Means Clustering With Labels")
 
     plt.show()
+
     print_median_std_from_clusters(clusters_of_restaurants)
 
     #for i in range(N_CLUSTERS):
@@ -157,7 +161,7 @@ def run(my_map, reviews, restaurants):
     restaurant_ids_to_topics = {}
     for restaurant in restaurants:
         business_id  = restaurant["business_id"]
-        review = reviews[business_id]
+        review = reviews.get(business_id, "")
         prediction = predictor.predict_topics(review)
         #print restaurant["name"], prediction
         restaurant_ids_to_topics[business_id] = make_topic_array_from_tuple_list(prediction, NUM_TOPICS) #topic array of weights for each topic index
@@ -186,8 +190,8 @@ def normalize_predictions(predictions, restaurants):
 
 def main():
     my_map = Map.vegas()
-    reviews = get_vegas_reviews()
-    restaurants = get_vegas_restaurants()
+    reviews = DataImporter.get_vegas_reviews()
+    restaurants = DataImporter.get_vegas_restaurants()
     run(my_map, reviews, restaurants)
 
 if __name__ == '__main__':

@@ -60,10 +60,10 @@ class Map:
     def pheonix():
         """Returns the map object of phoenix"""
         imagePath = "images/phoenix.png"
-        top_latitude = 33.465830
-        bottom_latitude = 33.4209533
-        left_longitude = -112.1172946
-        right_longitude = -112.0071188
+        top_latitude = 33.788493
+        bottom_latitude = 33.129717
+        left_longitude = -112.412109
+        right_longitude = -111.622467
         return Map(Coordinate(top_latitude,left_longitude), \
          Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\
          Coordinate(bottom_latitude,right_longitude), imagePath)
@@ -71,11 +71,48 @@ class Map:
     @staticmethod
     def vegas():
         """Returns the map object of vegas"""
-        imagePath = "images/vegas2.png"
+        imagePath = "images/vegas.png"
         top_latitude = 36.310359
         bottom_latitude = 35.980255
         left_longitude = -115.357904
         right_longitude = -114.949179
+        return Map(Coordinate(top_latitude,left_longitude), \
+         Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\
+         Coordinate(bottom_latitude,right_longitude), imagePath)
+
+    @staticmethod
+    def waterloo():
+        """Returns the map object of waterloo"""
+        imagePath = "images/waterloo.png"
+        top_latitude = 43.544364
+        bottom_latitude = 43.410581
+        left_longitude = -80.635872
+        right_longitude = -80.451164
+        return Map(Coordinate(top_latitude,left_longitude), \
+         Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\
+         Coordinate(bottom_latitude,right_longitude), imagePath)
+
+    @staticmethod
+    def edinburgh():
+        """Returns the map object of edinburgh"""
+        imagePath = "images/edinburgh.png"
+        top_latitude = 55.986704
+        bottom_latitude = 55.907306
+        left_longitude = -3.251266
+        right_longitude = -3.121834
+
+        return Map(Coordinate(top_latitude,left_longitude), \
+         Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\
+         Coordinate(bottom_latitude,right_longitude), imagePath)
+
+    @staticmethod
+    def madison():
+        """Returns the map object of madison"""
+        imagePath = "images/madison.png"
+        top_latitude = 43.215279
+        bottom_latitude = 42.960537
+        left_longitude = -89.573593
+        right_longitude = -89.223404
 
         return Map(Coordinate(top_latitude,left_longitude), \
          Coordinate(top_latitude,right_longitude), Coordinate(bottom_latitude,left_longitude),\

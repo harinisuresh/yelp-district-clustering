@@ -8,15 +8,30 @@ import os.path
 
 VEGAS_RESTAURANTS_PATH = "pickles/get_restaurants_vegas.p"
 PHOENIX_RESTAURANTS_PATH = "pickles/get_restaurants_phoenix.p"
+EDINBURGH_RESTAURANTS_PATH = "pickles/get_restaurants_edinburgh.p"
+WATERLOO_RESTAURANTS_PATH = "pickles/get_restaurants_waterloo.p"
+MADISON_RESTAURANTS_PATH = "pickles/get_restaurants_madison.p"
 
 VEGAS_REVIEWS_PATH = "pickles/get_reviews_vegas.p"
 PHOENIX_REVIEWS_PATH = "pickles/get_reviews_phoenix.p"
+EDINBURGH_REVIEWS_PATH = "pickles/get_reviews_edinburgh.p"
+WATERLOO_REVIEWS_PATH = "pickles/get_reviews_waterloo.p"
+MADISON_REVIEWS_PATH = "pickles/get_reviews_madison.p"
 
 def get_pheonix_restaurants():
     return get_restaurants("Phoenix", PHOENIX_RESTAURANTS_PATH)
 
 def get_vegas_restaurants():
     return get_restaurants("Las Vegas", VEGAS_RESTAURANTS_PATH)
+
+def get_edinburgh_restaurants():
+    return get_restaurants("Edinburgh", EDINBURGH_RESTAURANTS_PATH)
+
+def get_waterloo_restaurants():
+    return get_restaurants("Waterloo", WATERLOO_RESTAURANTS_PATH)
+
+def get_madison_restaurants():
+    return get_restaurants("Madison", MADISON_RESTAURANTS_PATH)
 
 def get_vegas_restaurants_id_to_restaurant():
     return get_restaurants_id_to_restaurant("Las Vegas")
@@ -67,6 +82,15 @@ def get_vegas_reviews():
 
 def get_phoenix_reviews():
     return get_reviews_from_restuaraunts("Phoenix", PHOENIX_REVIEWS_PATH)
+
+def get_edinburgh_reviews():
+    return get_reviews_from_restuaraunts("Edinburgh", EDINBURGH_REVIEWS_PATH)
+
+def get_waterloo_reviews():
+    return get_reviews_from_restuaraunts("Waterloo", WATERLOO_REVIEWS_PATH)
+
+def get_madison_reviews():
+    return get_reviews_from_restuaraunts("Madison", MADISON_REVIEWS_PATH)
 
 def get_reviews_from_restuaraunts(city_string, pickle_path):
     if pickle_path and os.path.exists(pickle_path):
