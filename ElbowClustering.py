@@ -1,31 +1,23 @@
+""" Methods to perform the Elbow Method and calculate the gap statistic for data """
+
 import numpy
 import numpy as np
 import matplotlib as mp
 import matplotlib.pyplot as plt
 import random
  
-def init_board(N):
-    X = np.array([(random.uniform(-1, 1), random.uniform(-1, 1)) for i in range(N)])
-    return X
-
-
-def init_board_gauss(N, k):
-    n = float(N)/k
-    X = []
-    for i in range(k):
-        c = (random.uniform(-1, 1), random.uniform(-1, 1))
-        s = random.uniform(0.05,0.5)
-        x = []
-        while len(x) < n:
-            a, b = np.array([np.random.normal(c[0], s), np.random.normal(c[1], s)])
-            # Continue drawing points from the distribution in the range [-1,1]
-            if abs(a) < 1 and abs(b) < 1:
-                x.append([a,b])
-        X.extend(x)
-    X = np.array(X)[:N]
-    return X
 
 def cluster_points(X, mu):
+    """
+    Clusters the items in a dataset given each item's dimensional array and a 
+    set of centeroids on which to cluster.
+
+    Parameters: 
+        X - a data matrix where each row is a dimensional array of an item to be clustered
+        mu - an array of centroids on which to cluster
+    Returns:
+        A dictionary of centroid to cluster
+    """
     clusters  = {}
     for x in X:
         bestmukey = min([(i[0], np.linalg.norm(x-mu[i[0]])) \
@@ -37,6 +29,15 @@ def cluster_points(X, mu):
     return clusters
  
 def reevaluate_centers(mu, clusters):
+    """
+    Given a set of clusters, recalculates the centroids as the means of all points belonging to a cluster.
+
+    Parameters: 
+        mu - an array of centroids
+        clusters - a dictionary of centroid to cluster
+    Returns:
+        An array recalculated centroids where each one is the mean of all points belonging to a cluster
+    """
     newmu = []
     keys = sorted(clusters.keys())
     for k in keys:
@@ -44,9 +45,29 @@ def reevaluate_centers(mu, clusters):
     return newmu
  
 def has_converged(mu, oldmu):
+    """
+    A boolean indicating whether or not a set of centroids has converged
+
+    Parameters: 
+        mu - the latest array of centroids
+        oldmu - the array of centroids from the previous iteration
+    Returns:
+        A boolean indicating whether or not the old and new centroids are the same, 
+        representing whether or not the clustering has converged
+    """
     return (set([tuple(a) for a in mu]) == set([tuple(a) for a in oldmu]))
 
 def find_centers(X, K):
+    """
+    Implements an iterative process (Lloyd's algorithm) for k-means clustering
+
+    Parameters: 
+        X - a data matrix where each row is a dimensional array of an item to be clustered
+        K - the number of clusters to use
+    Returns:
+        A tuple containing (1) an array of centroids and 
+        (2) a dictionary of centroid to points beloning to that centroid's cluster
+    """
     # Initialize to K random centers
     oldmu = random.sample(X, K)
     mu = random.sample(X, K)
@@ -59,16 +80,53 @@ def find_centers(X, K):
     return(mu, clusters)
 
 def Wk(mu, clusters):
+    """
+    Given a clustering, calculates Wk, the normalized sum of intra-cluster distances 
+    between the points in each cluster
+
+    Parameters: 
+        mu - an array of centroids
+        clusters - a dictionary of centroid to cluster
+
+    Returns:
+        An array containing the Wk for each cluster
+    """
     K = len(mu)
     return sum([np.linalg.norm(mu[i]-c)**2/(2*len(c)) \
                for i in range(K) for c in clusters[i]])
 
 def bounding_box(X):
+    """
+    Calculates the boundaries of a given dataset on all sides
+
+    Parameters: 
+        X - a data matrix where each row is a dimensional array of an item to be clustered
+
+    Returns:
+        Two tuples, where the first contains the minimum and maximum x values, and the 
+        second contains the minimum and maximum y values
+    """
     xmin, xmax = min(X,key=lambda a:a[0])[0], max(X,key=lambda a:a[0])[0]
     ymin, ymax = min(X,key=lambda a:a[1])[1], max(X,key=lambda a:a[1])[1]
     return (xmin,xmax), (ymin,ymax)
  
 def gap_statistic(X):
+    """
+    Calculates values for use in determining the gap statistic 
+    for a given number of clusters K
+
+    Parameters: 
+        X - a data matrix where each row is a dimensional array of an item to be clustered
+
+    Returns:
+        Four values:
+        (1) an array of K values that were tested
+        (2) an array where each index contains an array of Wk values for the clusters
+        formed with that K value (where a Wk value is the normalized sum of intra-cluster 
+        distances between the points in each cluster)
+        (3) an array of the gap statistic calculated for each K value 
+        (4) an array of standard deviations for each K value
+    """
     (xmin,xmax), (ymin,ymax) = bounding_box(X)
     # Dispersion for real distribution
     print "new Gap"
@@ -97,6 +155,13 @@ def gap_statistic(X):
     return(ks, Wks, Wkbs, sk)
 
 def plot_elbow_and_gap(X):
+    """
+    Displays two plots: (1) The gap statistic across a number of clusters and 
+    (2) the elbow graph 
+
+    Parameters: 
+        X - a data matrix where each row is a dimensional array of an item to be clustered
+    """
     plt.figure(1)
     plt.scatter(X[:,0], X[:,1])
 
