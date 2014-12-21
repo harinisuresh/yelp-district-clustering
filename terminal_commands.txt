@@ -8,11 +8,3 @@ import LDAHeatMap
 novel_id = "CoJivG0wxNIBXyOF7MNqSQ"
 topic_id_mappings = LDAHeatMap.run(v_map, v_rev, v_rest, None, novel_id)
 LDAHeatMap.run(v_map, v_rev, v_rest, None, novel_id, topic_id_mappings)
-
-# To Run MapClusterwithWithLDA
-...
-import DataImporter
-import Map
-v_map = Map.Map.vegas()
-v_rest = get_vegas_restaurants_id_to_restaurant
-v_rev = DataImporter.get_reviews_from_restuaraunts("Las Vegas")
