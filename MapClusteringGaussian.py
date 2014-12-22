@@ -10,7 +10,7 @@ def create_gaussian_clusters_and_map(restaurants, restaurant_ids_to_topics, my_m
 
 def run(my_map, reviews, restaurants):
     normalized_restaurant_ids_to_topics, lda = Clustering.get_predictions(my_map, reviews, restaurants)
-    Clustering.create_gaussian_clusters_and_map(restaurants, normalized_restaurant_ids_to_topics, my_map, lda)   
+    create_gaussian_clusters_and_map(restaurants, normalized_restaurant_ids_to_topics, my_map, lda)   
 
 def main():
     my_map = Map.Map.vegas()
