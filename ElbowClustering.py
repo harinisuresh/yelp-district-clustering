@@ -5,7 +5,8 @@ import numpy as np
 import matplotlib as mp
 import matplotlib.pyplot as plt
 import random
- 
+import Map 
+import DataImporter
 
 def cluster_points(X, mu):
     """
