@@ -1,6 +1,8 @@
 """Cluster restaurants on map"""
 import ElbowClustering
 import Clustering
+import Map 
+import DataImporter
 
 def elbow_clustering(restaurants, restaurant_ids_to_topics, my_map):
     data = Clustering.create_data_array(restaurants, restaurant_ids_to_topics, my_map)
