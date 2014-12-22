@@ -1,7 +1,10 @@
+import itertools
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.cluster.vq import vq, kmeans, whiten
+from scipy import linalg
+from sklearn import mixture
 from MapUtils import Coordinate, Position, create_n_unique_colors
 from Map import Map
 from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_vegas_reviews, get_topic_labels
@@ -10,7 +13,7 @@ import math
 import random
 import operator
 from Utils import make_topic_array_from_tuple_list
-from Utils import make_tuple_list_from_topic_array
+from Utils import make_tuple_list_from_topic_array, print_median_std_from_clusters
 from math import sqrt
 from vonoroi import plot_vonoroi_from_points
 
@@ -20,7 +23,7 @@ N_CLUSTERS = 30
 K = np.sqrt(5.0/6.0)
 PIXELS_PER_MILE = 48.684
 LDA_ClUSTER_SCALE_FACTOR =  K*PIXELS_PER_MILE
-
+ALPHA = 0.001
 
 def create_data_array(restaurants, restaurant_ids_to_topics, my_map):
 
@@ -29,7 +32,7 @@ def create_data_array(restaurants, restaurant_ids_to_topics, my_map):
     all_topic_weights = []
     num_restaurants = restaurants.size
 
-    print "K-mean clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
+    print "Clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
 
     #create an position and topic arrays for each restaurant
     for restaurant in restaurants:
@@ -85,7 +88,7 @@ def plot_clusters(my_map, restaurants, restaurant_ids_to_topics, data, lda):
     for i in range(N_CLUSTERS):
         cluster_x = clusters_x[i]
         cluster_y = clusters_y[i]
-        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.5)
+        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.2)
     
     plt.title("Las Vegas K-Means Clustering")
     plt.show()
@@ -100,7 +103,7 @@ def plot_clusters(my_map, restaurants, restaurant_ids_to_topics, data, lda):
     for i in range(N_CLUSTERS):
         cluster_x = clusters_x[i]
         cluster_y = clusters_y[i]
-        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.5)
+        plt.scatter(cluster_x, cluster_y, marker='o', color=colors[i], alpha=0.2)
 
     for i in range(len(centers_x)):
         center_position = Position(centers_x[i], centers_y[i])
@@ -198,3 +201,117 @@ def normalize_predictions(predictions, restaurants):
         predictions[business_id] = make_tuple_list_from_topic_array(weights)
 
     return predictions
+
+
+def gaussian_clustering(data):
+    # Fit a Dirichlet process mixture of Gaussians using five components
+    clf = mixture.GMM(n_components=N_CLUSTERS, covariance_type='full')
+    clf.fit(data)
+    
+    # Print means
+    print "means"
+    print clf.means_
+    
+    # Classify data
+    classifications = clf.predict(data)
+
+    # Print means above a threshold
+    idx = np.unique(classifications)
+    filtered_means = means_filtered(clf.means_, idx)
+    print "new means"
+    print filtered_means
+
+    return clf, classifications
+
+
+def plot_gaussian_clusters(my_map, restaurants, restaurant_ids_to_topics, data, lda):
+    # Get GMM
+    clf, classifications = gaussian_clustering(data)
+
+    # Get unique colors
+    color_iter = itertools.cycle(create_n_unique_colors(N_CLUSTERS))
+
+    # Get clusters
+    clusters = [data[classifications==i] for i in range(N_CLUSTERS)]
+    clusters_of_restaurants = [restaurants[classifications==i] for i in range(N_CLUSTERS)]
+    
+
+    # Figure 1: Gaussian clusters with covariance ellipses, no labels
+    plt.figure(1)
+
+    im = plt.imread(my_map.image_path)
+    implot = plt.imshow(im)
+
+    for i, (mean, covar, color) in enumerate(zip(
+            clf.means_, clf._get_covars(), color_iter)):
+        v, w = linalg.eigh(covar)
+        u = w[0] / linalg.norm(w[0])
+        # as the DP will not use every component it has access to
+        # unless it needs it, we shouldn't plot the redundant
+        # components.
+        if not np.any(classifications == i):
+            continue
+        plt.scatter(data[classifications == i, 0], data[classifications == i, 1], color=color, alpha=0.5)
+
+
+        # Plot an ellipse to show the Gaussian component
+        angle = np.arctan(u[1] / u[0])
+        angle = 180 * angle / np.pi  # convert to degrees
+        ell = mpl.patches.Ellipse(mean, v[0], v[1], 180 + angle, color=color)
+        ell.set_alpha(0.5)            
+        plt.xticks(())
+        plt.yticks(())
+    
+    plt.title('Dirichlet Process GMM')
+    plt.show()
+
+    # Figure 2: Gaussian clusters with labels
+    plt.figure(2)
+
+    centers_x = [p[0] for p in clf.means_]
+    centers_y = [p[1] for p in clf.means_]
+
+    im = plt.imread(my_map.image_path)
+    implot = plt.imshow(im)
+    angles = np.zeros(N_CLUSTERS)
+
+    for i, (mean, covar, color) in enumerate(zip(
+            clf.means_, clf._get_covars(), color_iter)):
+        v, w = linalg.eigh(covar)
+        u = w[0] / linalg.norm(w[0])
+        l_u = len(u)
+        angle = np.arctan(u[l_u-2] / u[l_u-1])
+        print "ANGLE1", angle
+        angle = 180 * angle / np.pi  # convert to degrees
+        print "ANGLE2", angle
+        print "vars", angle
+        angles[i] = angle
+        if not np.any(classifications == i):
+            continue
+        plt.scatter(data[classifications == i, 0], data[classifications == i, 1], color=color, alpha=0.5)
+
+    # Plot labels over map
+    for i in range(N_CLUSTERS):
+        center_position = Position(centers_x[i], centers_y[i])
+        cluster_restaurants = clusters_of_restaurants[i]
+        label_text, label_weight = make_label_text_for_cluster(center_position, cluster_restaurants, restaurant_ids_to_topics, lda, use_human_labels)
+        print label_text
+        text = ""
+        if len(label_text) > 1:
+            text = label_text[0] + '\n' + label_text[1]
+        angle = angles[i]
+        if np.isnan(angle):
+            angle = 0.0
+        print "print", angle
+        plt.text(centers_x[i], centers_y[i], text,
+        horizontalalignment='center',
+        verticalalignment='center',
+        rotation=angle, fontsize=9)
+
+    plt.title("Las Vegas Gaussian Clustering With Labels")
+    plt.show()
+    print_median_std_from_clusters(clusters_of_restaurants)
+
+
+def means_filtered(means, idx):
+    return [means[i] for i in range(len(means)) if i in idx]
