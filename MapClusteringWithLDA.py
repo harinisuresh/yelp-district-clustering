@@ -7,7 +7,6 @@ import DataImporter
 def create_topic_clusters_and_map(restaurants, restaurant_ids_to_topics, my_map, lda, use_human_labels=True):
     data = Clustering.create_data_array(restaurants, restaurant_ids_to_topics, my_map)
     Clustering.plot_clusters(my_map, restaurants, restaurant_ids_to_topics, data, lda)
-    print_median_std_from_clusters(clusters_of_restaurants)
 
 def run(my_map, reviews, restaurants):
     normalized_restaurant_ids_to_topics, lda = Clustering.get_predictions(my_map, reviews, restaurants)
