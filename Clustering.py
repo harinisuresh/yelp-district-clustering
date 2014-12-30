@@ -15,7 +15,6 @@ import operator
 from Utils import make_topic_array_from_tuple_list
 from Utils import make_tuple_list_from_topic_array, print_median_std_from_clusters
 from math import sqrt
-from vonoroi import plot_vonoroi_from_points
 
 #constants
 NUM_TOPICS = 50
@@ -26,10 +25,32 @@ LDA_ClUSTER_SCALE_FACTOR =  K*PIXELS_PER_MILE
 ALPHA = 0.001
 
 def filter_restaurants(restaurants, reviews):
+    """
+    Filter restaurants to remove those with no reviews.
+
+    Parameters:
+        restaurants - the restauraunts to be filtered
+        reviews - a dictionary of reviews with restaurant ids for keys
+
+    Returns:
+        The filtered list of restaurants.
+    """
     filtered_restaurants = [restaurant for restaurant in restaurants if restaurant["business_id"] in reviews]
     return filtered_restaurants
 
 def create_data_array(restaurants, restaurant_ids_to_topics, my_map):
+    """
+    Create data array for sklearn clustering method.
+
+        Parameters:
+        restaurants - the restauraunts in the data set for clustering
+        restaurant_ids_to_topics - a dictionary mapping of 
+            restaurant ids to topic distributions
+        my_map - Map object representing the current city
+
+    Returns:
+        The data in array format.
+    """
     restaurant_coordinates = []
     restaurant_positions = []
     all_topic_weights = []
@@ -61,7 +82,15 @@ def create_data_array(restaurants, restaurant_ids_to_topics, my_map):
 
 
 def k_means_clustering(data):
+    """
+    Perform k_means clustering on the given data.
 
+    Parameters:
+        data - the data in array format to perform clustering on
+
+    Returns:
+        A tuple of the cluster centers, center distances, classifications, and distances of classifications.
+    """
     #Perform clustering
     centers, center_dist = kmeans(data, N_CLUSTERS, iter=200)
     classifications, classification_dist = vq(data, centers)
@@ -70,6 +99,20 @@ def k_means_clustering(data):
 
 
 def plot_clusters(my_map, restaurants, restaurant_ids_to_topics, data, lda):
+    """
+    Plot clusters on map and show them.
+
+    Parameters:
+        my_map - the Map object representation of the current city
+        restaurants - a list of restaurants of the current city
+        restaurant_ids_to_topics - a dictionary mapping of 
+            restaurant ids to topic distributions
+        data - the data to be clustered
+        lda - the lda model
+
+    Returns:
+        None
+    """
     centers, center_dist, classifications, classification_dist = k_means_clustering(data)
 
     #Figure 1: Plot clusters of restaurants with different colors, no labels
@@ -121,6 +164,20 @@ def plot_clusters(my_map, restaurants, restaurant_ids_to_topics, data, lda):
     plt.show()
 
 def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_ids_to_topics, lda, use_human_labels=True):
+    """
+    Get the text to overlay atop a cluster.
+
+    Parameters:
+        cluster_center - The center of the cluster
+        cluster_restaurants - a list of restaurants of the cluster
+        restaurant_ids_to_topics - a dictionary mapping of 
+            restaurant ids to topic distributions
+        lda - the lda model
+        use_human_labels -  whether or not to use the human topic labels
+
+    Returns:
+        A tuple of the two strings for the cluster and their associated weights.
+    """
     topic_total_weights = {}
 
     for restaurant in cluster_restaurants:
@@ -130,34 +187,15 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
             topic_total_weights[topic_id] = topic_total_weights.get(topic_id, 0.0) + topic_weight
     topic_ids = topic_total_weights.keys()
     sorted_topic_total_weights = sorted(topic_total_weights.items(), key=operator.itemgetter(1)) #sort based on values
-    print sorted_topic_total_weights
     number_of_best_topics = 2
     
     best_topic_id_pairs = sorted_topic_total_weights[len(sorted_topic_total_weights)-number_of_best_topics:]
-    print best_topic_id_pairs
-
     total_weight = sum([id_weight_pair[1] for id_weight_pair in sorted_topic_total_weights])
 
     best_topic_ids = [best_topic_id_pair[0] for best_topic_id_pair in best_topic_id_pairs]
-    print best_topic_ids
-
     best_topic_weights = [best_topic_id_pair[1] for best_topic_id_pair in best_topic_id_pairs]
-
     best_topics_words = [lda.show_topic(best_topic_id) for best_topic_id in best_topic_ids] #list of words for each best topic
-    print best_topics_words
-
-
-    #best_topic_id =  max(topic_ids, key=lambda t_id: topic_total_weights.get(t_id, 0.0)) # get argmax of topic
-    #best_topic = lda.show_topic(best_topic_id)
-
-    #list of (weight, word) tuples of the top words in each of the best topics
     best_weights_and_words = [best_topic_words[0] for best_topic_words in best_topics_words]
-
-
-    #best_weight, best_word = best_topic[0]
-    #best_weight_2, best_word_2 = best_topic[1]
-
-    print best_weights_and_words
 
     best_words = [a[1] for a in best_weights_and_words]
 
@@ -169,6 +207,17 @@ def make_label_text_for_cluster(cluster_center, cluster_restaurants, restaurant_
 
 
 def get_predictions(my_map, reviews, restaurants):
+    """
+    Get the topic predictions for all restaurants.
+
+    Parameters:
+        my_map - the Map object representation of the current city
+        reviews - a dictionary of reviews with restaurant ids for keys
+        restaurants - a list of restaurants of the current city
+
+    Returns:
+        A tuple of a dictionary of restaurant ids to topic distributions and the lda model
+    """
     predictor = LDAPredictor()
     lda = predictor.lda
     restaurant_ids_to_topics = {}
@@ -182,6 +231,16 @@ def get_predictions(my_map, reviews, restaurants):
 
 
 def normalize_predictions(predictions, restaurants): 
+    """
+    Get the normalized predictions for the restaurants.
+
+    Parameters:
+        predictions - the predictions (a dictionary of restaurant ids to topic distributions)
+        restaurants - a list of restaurants
+
+    Returns:
+        A dictionary of restaurant ids to normalized topic distributions
+    """
     all_weights = predictions.values()
     all_weights_sum = np.sum(all_weights, axis=0)
 
@@ -207,6 +266,15 @@ def normalize_predictions(predictions, restaurants):
 
 
 def gaussian_clustering(data):
+    """
+    Perform gaussian mixture model clustering on the given data.
+
+    Parameters:
+        data - the data in array format to perform clustering on
+
+    Returns:
+        A tuple of the classifier and classifications.
+    """
     # Fit a Dirichlet process mixture of Gaussians using five components
     clf = mixture.GMM(n_components=N_CLUSTERS, covariance_type='full')
     clf.fit(data)
@@ -228,6 +296,20 @@ def gaussian_clustering(data):
 
 
 def plot_gaussian_clusters(my_map, restaurants, restaurant_ids_to_topics, data, lda):
+    """
+    Plot gaussian clusters on map and show them.
+
+    Parameters:
+        my_map - the Map object representation of the current city
+        restaurants - a list of restaurants of the current city
+        restaurant_ids_to_topics - a dictionary mapping of 
+            restaurant ids to topic distributions
+        data - the data to be clustered
+        lda - the lda model
+
+    Returns:
+        None
+    """
     # Get GMM
     clf, classifications = gaussian_clustering(data)
 
@@ -297,7 +379,7 @@ def plot_gaussian_clusters(my_map, restaurants, restaurant_ids_to_topics, data, 
     for i in range(N_CLUSTERS):
         center_position = Position(centers_x[i], centers_y[i])
         cluster_restaurants = clusters_of_restaurants[i]
-        label_text, label_weight = make_label_text_for_cluster(center_position, cluster_restaurants, restaurant_ids_to_topics, lda, use_human_labels)
+        label_text, label_weight = make_label_text_for_cluster(center_position, cluster_restaurants, restaurant_ids_to_topics, lda)
         print label_text
         text = ""
         if len(label_text) > 1:
@@ -317,4 +399,6 @@ def plot_gaussian_clusters(my_map, restaurants, restaurant_ids_to_topics, data, 
 
 
 def means_filtered(means, idx):
+    """Helper method to filter gaussian means to include 
+        only gaussians with at least 1 classification"""
     return [means[i] for i in range(len(means)) if i in idx]

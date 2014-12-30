@@ -1,10 +1,10 @@
-""" Test"""
+"""For Training the LDA model"""
 
 import logging
 import gensim
 from gensim.corpora import BleiCorpus
 from gensim import corpora
-from DataImporter import get_reviews_from_restuaraunts
+from DataImporter import get_vegas_reviews
 import re
 from sklearn.feature_extraction import text as sktext
 
@@ -51,12 +51,7 @@ class Train():
 
 def get_words_from_text(text, custom_stop_words = []):
     stoplist = sktext.ENGLISH_STOP_WORDS
-    # Build tokenized, normalised word vectors for each document
-    # We could apply stemming here.
-    top_15_percent = set([u"it's", u'like', u'food', u'time', u'really', u'great', u'service', u'just', u'place', u'good', u'chicken'])
-
-    words = [word for word in re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', text.lower()) if word not in stoplist and word not in top_15_percent and word != ""]
-    
+    words = [word for word in re.split('[\s,.()!&?/\*\^#@0-9":=\[\]$\\;%]|--', text.lower()) if word not in stoplist and word != ""]
     return words
 
 
@@ -67,9 +62,7 @@ def main():
     corpus_path = "models/corpus.lda-c"
     lda_num_topics = 50
     lda_model_path = "models/lda_model.lda"
-    city = "Las Vegas"
-    reviews = get_reviews_from_restuaraunts(city)
-
+    reviews = get_vegas_reviews()
     corpus_collection = {business_id : {"review_text" : review_text, "words": get_words_from_text(review_text)} for business_id, review_text in reviews.iteritems()}
     dictionary = Dictionary(corpus_collection, dictionary_path).build()
     Corpus(corpus_collection, dictionary, corpus_path).serialize()
