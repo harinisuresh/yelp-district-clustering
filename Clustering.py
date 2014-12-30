@@ -7,7 +7,7 @@ from scipy import linalg
 from sklearn import mixture
 from MapUtils import Coordinate, Position, create_n_unique_colors
 from Map import Map
-from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_vegas_reviews, get_topic_labels
+from DataImporter import get_pheonix_restaurants, get_vegas_restaurants, get_vegas_reviews, get_topic_labels, get_words_from_text
 from LDAPredictor import LDAPredictor
 import math
 import random
@@ -25,12 +25,15 @@ PIXELS_PER_MILE = 48.684
 LDA_ClUSTER_SCALE_FACTOR =  K*PIXELS_PER_MILE
 ALPHA = 0.001
 
-def create_data_array(restaurants, restaurant_ids_to_topics, my_map):
+def filter_restaurants(restaurants, reviews):
+    filtered_restaurants = [restaurant for restaurant in restaurants if restaurant["business_id"] in reviews]
+    return filtered_restaurants
 
+def create_data_array(restaurants, restaurant_ids_to_topics, my_map):
     restaurant_coordinates = []
     restaurant_positions = []
     all_topic_weights = []
-    num_restaurants = restaurants.size
+    num_restaurants = len(restaurants)
 
     print "Clustering on :", num_restaurants, "restaurants with", N_CLUSTERS, "clusters"
 

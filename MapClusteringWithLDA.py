@@ -9,6 +9,7 @@ def create_topic_clusters_and_map(restaurants, restaurant_ids_to_topics, my_map,
     Clustering.plot_clusters(my_map, restaurants, restaurant_ids_to_topics, data, lda)
 
 def run(my_map, reviews, restaurants):
+    restaurants = Clustering.filter_restaurants(restaurants)
     normalized_restaurant_ids_to_topics, lda = Clustering.get_predictions(my_map, reviews, restaurants)
     create_topic_clusters_and_map(restaurants, normalized_restaurant_ids_to_topics, my_map, lda)   
 

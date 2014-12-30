@@ -11,6 +11,7 @@ def elbow_clustering(restaurants, restaurant_ids_to_topics, my_map):
 
 
 def run(my_map, reviews, restaurants):
+    restaurants = Clustering.filter_restaurants(restaurants, reviews)
     normalized_restaurant_ids_to_topics, lda = Clustering.get_predictions(my_map, reviews, restaurants)
     elbow_clustering(restaurants, normalized_restaurant_ids_to_topics, my_map)   
 
